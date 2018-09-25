@@ -12,6 +12,12 @@ class TrainingDatabase:
     Represents a table of data that a learning algorithm may use to train
     itself and thereby learn about the hypothesis space in which it is
     expected to operate.
+
+    Please note that this object is sparse and, since it is intended to keep
+    memory low, has some severe restrictions in terms of format.  In
+    particular:
+      - All classes are expected to be 8-bit unsigned integers.
+      - All counts are expected to be 16-bit unsigned integers.
     
     Attributes:
         classes (np.array): The collection of results.
@@ -22,12 +28,17 @@ class TrainingDatabase:
         if len(classes.shape) != 1:
             raise ValueError("Classes must be one dimensional")
         if len(counts.shape) != 2:
-            raise ValueError("counts must be two dimensional.")
+            raise ValueError("Counts must be two dimensional.")
         if classes.shape[0] != counts.shape[0]:
             raise ValueError("The number of classes must equal the number of "
                              "rows.")
         if not counts.getformat() == "csr":
             raise ValueError("The matrix type must be CSR.")
+
+        if not classes.dtype == np.uint8:
+            raise ValueError("Classes must be 8-bit unsigned integers.")
+        if not counts.dtype == np.uint16:
+            raise ValueError("Counts must be 16-bit unsigned integers.")
 
         self.classes = classes
         self.counts = counts
