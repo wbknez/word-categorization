@@ -17,6 +17,21 @@ class SparseMatrix:
     """
 
     def __init__(self, data, rows, cols, shape):
+        if len(rows) != len(cols):
+            raise ValueError("The size of the indice arrays must be "
+                             "equivalent in both directions: rows is {} but "
+                             "cols is {}".format(len(rows), len(cols)))
+        if len(cols) != len(data):
+            raise ValueError("The size of the data array must equal that of "
+                             "the indices: "
+                             "{} instead of {}.".format(len(data), len(cols)))
+        if not np.issubdtype(cols.dtype, np.integer):
+            raise ValueError("Column indices are not of integral type: "
+                             "{}".format(cols.dtype))
+        if not np.issubdtype(rows.dtype, np.integer):
+            raise ValueError("Row indices are not of integral type: "
+                             "{}".format(rows.dtype))
+
         self.cols = cols
         self.data = data
         self.rows = rows

@@ -26,8 +26,29 @@ class SparseMatrixTest(TestCase):
                     data.append(col)
                     rows.append(row_index)
 
-        return SparseMatrix(np.array(data),np.array(rows), np.array(cols),
+        return SparseMatrix(np.array(data), np.array(rows, np.int),
+                            np.array(cols, np.int),
                             (len(dense_matrix), len(dense_matrix[0])))
+
+    def test_init_throws_when_col_dtype_is_not_integral(self):
+        with self.assertRaises(ValueError):
+            SparseMatrix(np.zeros(10), np.zeros(10, np.int),
+                         np.zeros(10, np.float), (10, 10))
+
+    def test_init_throws_when_data_and_column_dimensions_are_unequal(self):
+        with self.assertRaises(ValueError):
+            SparseMatrix(np.zeros(8), np.zeros(10, np.int),
+                         np.zeros(10, np.int), (10, 10))
+
+    def test_init_throws_when_row_and_column_dimensions_are_unequal(self):
+        with self.assertRaises(ValueError):
+            SparseMatrix(np.zeros(10), np.zeros(10, np.int),
+                         np.zeros(8, np.int), (10, 10))
+
+    def test_init_throws_when_row_dtype_is_not_integral(self):
+        with self.assertRaises(ValueError):
+            SparseMatrix(np.zeros(10), np.zeros(10, np.float),
+                         np.zeros(10, np.int), (10, 10))
 
     def test_get_data_column_using_simple_matrix(self):
         mat = SparseMatrixTest.make_sparse([[3, 0, 0], [0, 0, 1], [5, 0, 3]])
