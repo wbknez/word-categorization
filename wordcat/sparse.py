@@ -37,6 +37,14 @@ class SparseMatrix:
         self.rows = rows
         self.shape = shape
 
+    def __eq__(self, other):
+        if isinstance(other, SparseMatrix):
+            return np.array_equal(self.cols, other.data) and \
+                   np.array_equal(self.data, other.data) and \
+                   np.array_equal(self.rows, other.rows) and \
+                   self.shape == other.shape
+        return NotImplemented
+
     def __getattr__(self, item):
         if item == "dtype":
             return self.data.dtype
@@ -50,6 +58,9 @@ class SparseMatrix:
         :return: The number of non-zero elements.
         """
         return self.data.size
+
+    def __ne__(self, other):
+        return not self == other
 
     def get_column(self, index):
         """
@@ -104,9 +115,18 @@ class SparseVector:
         self.data = data
         self.indices = indices
 
+    def __eq__(self, other):
+        if isinstance(other, SparseVector):
+            return np.array_equal(self.data, other.data) and \
+                   np.array_equal(self.indices, other.indices)
+        return NotImplemented
+
     def __getattr__(self, item):
         if item == "dtype":
             return self.data.dtype
 
     def __len__(self):
         return self.data.size
+
+    def __ne__(self, other):
+        return not self == other
