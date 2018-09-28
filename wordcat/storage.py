@@ -29,11 +29,12 @@ class TrainingDatabase:
         if counts.dtype != np.uint16:
             raise ValueError("Counts are expected to be 16-bit unsigned "
                              "integers.")
-        if counts.rows != len(classes):
+        if np.unique(counts.rows).size != classes.size:
             raise ValueError("The number of rows does not match the number of "
                              "classes.  The number of rows is: {} but the "
                              "number of classes is: "
-                             "{}".format(counts.rows, len(classes)))
+                             "{}".format(np.unique(counts.rows).size,
+                                         classes.size))
 
         self.classes = classes
         self.counts = counts
@@ -41,10 +42,14 @@ class TrainingDatabase:
     def __getattr__(self, item):
         if item == "cols":
             return self.counts.cols
+        elif item == "data":
+            return self.counts.data
         elif item == "dtype":
             return self.counts.dtype
         elif item == "rows":
             return self.counts.rows
+        elif item == "shape":
+            return self.counts.shape
 
     def get_class_frequencies(self):
         """
