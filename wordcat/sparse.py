@@ -108,7 +108,7 @@ class SparseVector:
                              "indice array must match: "
                              "{} instead of {}.".format(data.size,
                                                         indices.size))
-        if np.issubdtype(indices.dtype, np.integer):
+        if not np.issubdtype(indices.dtype, np.integer):
             raise ValueError("Indices are not of integral type: "
                              "{}".format(indices.dtype))
 
