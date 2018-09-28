@@ -7,7 +7,7 @@ import numpy as np
 class SparseMatrix:
     """
     Represents a matrix that only stores non-zero elements, making it memory
-    efficient for managing large amounts of sparse data.
+    efficient for managing large amounts of sparse tabular data.
 
     Attributes:
         cols (np.array): The array of column indices.
@@ -49,7 +49,7 @@ class SparseMatrix:
 
         :return: The number of non-zero elements.
         """
-        return len(self.data)
+        return self.data.size
 
     def get_column(self, index):
         """
@@ -79,3 +79,34 @@ class SparseMatrix:
         if index < 0 or index >= self.shape[0]:
             raise IndexError("Row index is out of bounds: {}".format(index))
         return self.data[np.where(self.rows == index)]
+
+
+class SparseVector:
+    """
+    Represents a matrix that only stores non-zero elements, making it memory
+    efficient for managing large amounts of sparse sequential data.
+
+    Attributes:
+        data (np.array): The array of non-zero elements.
+        indices (np.array): The array of indices.
+    """
+
+    def __init__(self, data, indices):
+        if data.size != indices.size:
+            raise ValueError("The number of data elements and the size of the "
+                             "indice array must match: "
+                             "{} instead of {}.".format(data.size,
+                                                        indices.size))
+        if np.issubdtype(indices.dtype, np.integer):
+            raise ValueError("Indices are not of integral type: "
+                             "{}".format(indices.dtype))
+
+        self.data = data
+        self.indices = indices
+
+    def __getattr__(self, item):
+        if item == "dtype":
+            return self.data.dtype
+
+    def __len__(self):
+        return self.data.size
