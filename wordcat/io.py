@@ -7,6 +7,7 @@ from collections import namedtuple
 from functools import partial
 
 from wordcat.sparse import SparseMatrix
+from wordcat.storage import TrainingDatabase
 
 
 class CsvIO:
@@ -106,8 +107,30 @@ class SparseIO:
         :param stream: The file stream to read from.
         :return: A training database created from a sparse matrix.
         """
-        pass
+        arrays = np.load(stream)
+        return TrainingDatabase(arrays["classes"],
+                                SparseMatrix(arrays["data"],
+                                             arrays["rows"],
+                                             arrays["cols"],
+                                             tuple(arrays["shape"])))
 
     @staticmethod
     def read_set(stream):
+        """
+
+        :param stream:
+        :return:
+        """
         pass
+
+    @staticmethod
+    def write_database(stream, tdb):
+        """
+
+        :param stream:
+        :param tdb:
+        :return:
+        """
+        np.savez(stream, data=tdb.counts.data, rows=tdb.counts.rows,
+                 cols=tdb.counts.cols, classes=tdb.classes,
+                 shape=tdb.counts.shape)
