@@ -17,14 +17,14 @@ class SparseMatrix:
     """
 
     def __init__(self, data, rows, cols, shape):
-        if len(rows) != len(cols):
+        if rows.size != cols.size:
             raise ValueError("The size of the indice arrays must be "
                              "equivalent in both directions: rows is {} but "
-                             "cols is {}".format(len(rows), len(cols)))
-        if len(cols) != len(data):
+                             "cols is {}".format(rows.size, cols.size))
+        if cols.size != data.size:
             raise ValueError("The size of the data array must equal that of "
                              "the indices: "
-                             "{} instead of {}.".format(len(data), len(cols)))
+                             "{} instead of {}.".format(data.size, cols.size))
         if not np.issubdtype(cols.dtype, np.integer):
             raise ValueError("Column indices are not of integral type: "
                              "{}".format(cols.dtype))
@@ -38,12 +38,8 @@ class SparseMatrix:
         self.shape = shape
 
     def __getattr__(self, item):
-        if item == "cols":
-            return self.shape[1]
-        elif item == "dtype":
+        if item == "dtype":
             return self.data.dtype
-        elif item == "rows":
-            return self.shape[0]
 
     def __len__(self):
         """
@@ -55,7 +51,7 @@ class SparseMatrix:
         """
         return len(self.data)
 
-    def get_data_column(self, index):
+    def get_column(self, index):
         """
         Returns a data-only view of this sparse matrix located at the
         specified column index.
@@ -71,7 +67,7 @@ class SparseMatrix:
             raise IndexError("Column index is out of bounds: {}".format(index))
         return self.data[np.where(self.cols == index)]
 
-    def get_data_row(self, index):
+    def get_row(self, index):
         """
         Returns a data-only view of this sparse matrix located at the
         specified row index.
