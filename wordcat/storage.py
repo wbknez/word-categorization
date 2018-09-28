@@ -5,6 +5,38 @@ algorithm to use and operate upon.
 import numpy as np
 
 
+class TestingSet:
+    """
+    Represents a collection of test data.
+
+    Attributes:
+        ids (list): The list of unique ids, one per test.
+        tests (list): The list of tests, where each test is a sparse vector
+        of word counts.
+    """
+
+    def __init__(self, ids, tests):
+        if len(ids) != len(tests):
+            raise ValueError("The number of unique ids must equal the number "
+                             "of tests: {} not {}.".format(len(ids),
+                                                           len(tests)))
+
+        self.ids = ids
+        self.tests = tests
+
+    def __eq__(self, other):
+        if isinstance(other, TestingSet):
+            return self.ids == other.ids and self.tests == other.tests
+        return NotImplemented
+
+    def __iter__(self):
+        for id, test in zip(self.ids, self.tests):
+            yield id, test
+
+    def __ne__(self, other):
+        return not self == other
+
+
 class TrainingDatabase:
     """
     Represents a table of data that a learning algorithm may use to train
@@ -20,6 +52,8 @@ class TrainingDatabase:
       unsigned integers.
     
     Attributes:
+        classes (np.array):
+        counts (SparseMatrix):
     """
 
     def __init__(self, classes, counts):
