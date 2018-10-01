@@ -39,7 +39,7 @@ class SparseMatrix:
 
     def __eq__(self, other):
         if isinstance(other, SparseMatrix):
-            return np.array_equal(self.cols, other.data) and \
+            return np.array_equal(self.cols, other.cols) and \
                    np.array_equal(self.data, other.data) and \
                    np.array_equal(self.rows, other.rows) and \
                    self.shape == other.shape
@@ -48,6 +48,9 @@ class SparseMatrix:
     def __getattr__(self, item):
         if item == "dtype":
             return self.data.dtype
+
+    def __getstate__(self):
+        return self.__dict__.copy()
 
     def __len__(self):
         """
@@ -61,6 +64,9 @@ class SparseMatrix:
 
     def __ne__(self, other):
         return not self == other
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     def get_column(self, index):
         """
