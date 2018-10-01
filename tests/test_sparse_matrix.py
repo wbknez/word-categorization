@@ -15,6 +15,14 @@ class SparseMatrixTest(TestCase):
 
     @staticmethod
     def make_sparse(dense_matrix):
+        """
+        Creates a sparse matrix from the specified compacted (two-dimensional)
+        list of elements.
+
+        :param dense_matrix: The list of elements to use.
+        :return: A new sparse matrix.
+        """
+
         cols = []
         data = []
         rows = []
