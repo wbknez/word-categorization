@@ -63,25 +63,24 @@ class TrainingDatabase:
         if counts.dtype != np.uint16:
             raise ValueError("Counts are expected to be 16-bit unsigned "
                              "integers.")
-        if np.unique(counts.rows).size != classes.size:
+        if counts.shape[0] != classes.size:
             raise ValueError("The number of rows does not match the number of "
                              "classes.  The number of rows is: {} but the "
                              "number of classes is: "
-                             "{}".format(np.unique(counts.rows).size,
-                                         classes.size))
+                             "{}".format(counts.shape[0], classes.size))
 
         self.classes = classes
         self.counts = counts
 
     def __getattr__(self, item):
         if item == "cols":
-            return self.counts.cols
+            return self.counts.shape[1]
         elif item == "data":
             return self.counts.data
         elif item == "dtype":
             return self.counts.dtype
         elif item == "rows":
-            return self.counts.rows
+            return self.counts.shape[0]
         elif item == "shape":
             return self.counts.shape
 
@@ -97,7 +96,12 @@ class TrainingDatabase:
         The formula for a single frequency is given as:
             f(C_i) = (number of classes of type C_i) / (total number of classes)
 
-        :return: An tuple consisting of one array of unique classes and
+        Please note that this function does not ensure a full list.  Put
+        another way, any classes that are not found (because there are no
+        examples for them) are not included in the frequency computation and
+        are also not included in the returned class (id) list.
+
+        :return: A tuple consisting of one array of unique classes and
         another of their frequencies.
         """
         class_counts = np.unique(self.classes, return_counts=True)
