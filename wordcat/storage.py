@@ -72,6 +72,11 @@ class TrainingDatabase:
         self.classes = classes
         self.counts = counts
 
+    def __eq__(self, other):
+        if isinstance(other, TrainingDatabase):
+            return np.array_equal(self.classes, other.classes) and \
+                   self.counts == other.counts
+
     def __getattr__(self, item):
         if item == "cols":
             return self.counts.shape[1]
@@ -83,6 +88,15 @@ class TrainingDatabase:
             return self.counts.shape[0]
         elif item == "shape":
             return self.counts.shape
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     def get_class_frequencies(self):
         """
