@@ -91,6 +91,33 @@ class SparseMatrix:
             raise IndexError("Row index is out of bounds: {}".format(index))
         return self.data[np.where(self.rows == index)]
 
+    @staticmethod
+    def from_list(dense_matrix):
+        """
+        Creates a sparse matrix from the specified nested (two-dimensional)
+        list of elements.
+
+        The list of lists denotes a matrix in row-major order.
+
+        :param dense_matrix: The list of elements to use.
+        :return: A new sparse matrix.
+        """
+
+        cols = []
+        data = []
+        rows = []
+
+        for row_index, row in enumerate(dense_matrix):
+            for col_index, col in enumerate(row):
+                if col != 0:
+                    cols.append(col_index)
+                    data.append(col)
+                    rows.append(row_index)
+
+        return SparseMatrix(np.array(data), np.array(rows, np.int),
+                            np.array(cols, np.int),
+                            (len(dense_matrix), len(dense_matrix[0])))
+
 
 class SparseVector:
     """

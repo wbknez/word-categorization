@@ -13,31 +13,6 @@ class SparseMatrixTest(TestCase):
     Test suite for SparseMatrix.
     """
 
-    @staticmethod
-    def make_sparse(dense_matrix):
-        """
-        Creates a sparse matrix from the specified compacted (two-dimensional)
-        list of elements.
-
-        :param dense_matrix: The list of elements to use.
-        :return: A new sparse matrix.
-        """
-
-        cols = []
-        data = []
-        rows = []
-
-        for row_index, row in enumerate(dense_matrix):
-            for col_index, col in enumerate(row):
-                if col != 0:
-                    cols.append(col_index)
-                    data.append(col)
-                    rows.append(row_index)
-
-        return SparseMatrix(np.array(data), np.array(rows, np.int),
-                            np.array(cols, np.int),
-                            (len(dense_matrix), len(dense_matrix[0])))
-
     def test_init_throws_when_col_dtype_is_not_integral(self):
         with self.assertRaises(ValueError):
             SparseMatrix(np.zeros(10), np.zeros(10, np.int),
@@ -59,7 +34,7 @@ class SparseMatrixTest(TestCase):
                          np.zeros(10, np.int), (10, 10))
 
     def test_get_column_using_simple_matrix(self):
-        mat = SparseMatrixTest.make_sparse([[3, 0, 0], [0, 0, 1], [5, 0, 3]])
+        mat = SparseMatrix.from_list([[3, 0, 0], [0, 0, 1], [5, 0, 3]])
 
         expected0 = np.array([3, 5])
         expected1 = np.array([])
@@ -74,7 +49,7 @@ class SparseMatrixTest(TestCase):
         self.assertTrue(np.array_equal(result2, expected2))
 
     def test_get_row_using_simple_matrix(self):
-        mat = SparseMatrixTest.make_sparse([[3, 0, 0], [0, 0, 1], [5, 0, 3]])
+        mat = SparseMatrix.from_list([[3, 0, 0], [0, 0, 1], [5, 0, 3]])
 
         expected0 = np.array([3])
         expected1 = np.array([1])
@@ -87,3 +62,20 @@ class SparseMatrixTest(TestCase):
         self.assertTrue(np.array_equal(result0, expected0))
         self.assertTrue(np.array_equal(result1, expected1))
         self.assertTrue(np.array_equal(result2, expected2))
+
+    def test_from_list_with_no_unique_elements(self):
+        mat = SparseMatrix.from_list([[0, 0, 0, 0], [0, 0, 0, 0],
+                                      [0, 0, 0, 0], [0, 0, 0, 0]])
+        self.assertEqual(len(mat), 0)
+        self.assertTrue(np.array_equal(mat.cols, np.array([])))
+        self.assertTrue(np.array_equal(mat.data, np.array([])))
+        self.assertTrue(np.array_equal(mat.rows, np.array([])))
+
+    def test_from_list_with_several_unique_elements(self):
+        mat = SparseMatrix.from_list([[0, 1, 0, 0], [0, 0, 0, 2],
+                                      [4, 0, 0, 0], [0, 0, 3, 0]])
+        self.assertEqual(len(mat), 4)
+        self.assertTrue(np.array_equal(mat.cols, np.array([1, 3, 0, 2])))
+        self.assertTrue(np.array_equal(mat.data, np.array([1, 2, 4, 3])))
+        self.assertTrue(np.array_equal(mat.rows, np.array([0, 1, 2, 3])))
+
