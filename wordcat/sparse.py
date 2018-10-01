@@ -158,8 +158,14 @@ class SparseVector:
         if item == "dtype":
             return self.data.dtype
 
+    def __getstate__(self):
+        return self.__dict__.copy()
+
     def __len__(self):
         return self.data.size
 
     def __ne__(self, other):
         return not self == other
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
