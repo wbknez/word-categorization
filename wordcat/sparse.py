@@ -13,7 +13,7 @@ class SparseMatrix:
         cols (np.array): The array of column indices.
         data (np.array): The array of non-zero elements.
         rows (np.array): The array of row indices.
-        shape (tuple): The "true" dimensions.
+        shape (tuple): The "true" dimensions in (row, column) form.
     """
 
     def __init__(self, data, rows, cols, shape):
@@ -133,9 +133,10 @@ class SparseVector:
     Attributes:
         data (np.array): The array of non-zero elements.
         indices (np.array): The array of indices.
+        size (int): The maximum number of potential non-zero elements.
     """
 
-    def __init__(self, data, indices):
+    def __init__(self, data, indices, size):
         if data.size != indices.size:
             raise ValueError("The number of data elements and the size of the "
                              "indice array must match: "
@@ -147,6 +148,7 @@ class SparseVector:
 
         self.data = data
         self.indices = indices
+        self.size = size
 
     def __eq__(self, other):
         if isinstance(other, SparseVector):
