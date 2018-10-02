@@ -2,6 +2,7 @@
 Contains all classes and functions related to implementing the ore portion of
 this project - the actual machine learning algorithms themselves.
 """
+import numpy as np
 from abc import ABCMeta, abstractmethod
 
 
@@ -39,6 +40,19 @@ class LearningAlgorithm(metaclass=ABCMeta):
         :param pool: The processing pool to use.
         :param dbgc: The debug console to use.
         :return: A prediction.
+        """
+        pass
+
+    @abstractmethod
+    def reset(self, dbgc):
+        """
+        Resets this learning algorithm to a clean, stable state that will
+        allow it to be reused.
+
+        More formally, the post-condition of this function is that this
+        learning algorithm is ready for train() to be called without error.
+
+        :param dbgc: The debug console to use.
         """
         pass
 
@@ -81,4 +95,48 @@ class LearningAlgorithm(metaclass=ABCMeta):
         :return: A collection of both experimental and expected results
         ordered by test id.
         """
+        pass
+
+
+class NaiveBayesLearningAlgorithm(LearningAlgorithm):
+    """
+
+    """
+
+    def __init__(self, labels, vocab, beta):
+        super().__init__(labels, vocab)
+
+        self.beta = beta
+        self.priors = np.full(labels.count + 1, 0.0, dtype=np.float)
+
+    def compute_priors(self, tdb):
+        """
+        Computes the prior probabilities for each individual document class
+        relative to the others.
+
+        Priors are converted into logarithmic form in preparation for training.
+
+        :param tdb: The training database to use.
+        """
+        classes, frequencies = tdb.get_class_frequencies()
+        self.priors[classes] = np.log2(frequencies)
+
+    def predict(self, test, pool, dbgc):
+        pass
+
+    def reset(self, dbgc):
+        self.priors.fill(0.0)
+
+    def test(self, ts, pool, dbgc):
+        pass
+
+    def train(self, tdb, pool, dbgc):
+        # Training consists of the following steps:
+        #   1) Compute priors.
+        #   2) Compute sub-matrices for indexing.
+        #   4) Compute word count matrix using sparse vectors.
+        dbgc.info("Computing priors P(Yk) for all classes")
+        self.compute_priors(tdb)
+
+    def validate(self, vds, pool, dbgc):
         pass
