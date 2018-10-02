@@ -24,27 +24,29 @@ class DebugConsole:
         }
         self.is_verbose = is_verbose
 
-    def complete(self, msg):
+    def complete(self, msg, *objs):
         """
         Writes the specified completion message to the console if verbose
         messaging is allowed.
 
         :param msg: The message to write.
+        :param objs: The collection of objects to format.
         """
         if self.is_verbose:
-            print(self.colors["complete"] + msg)
+            print(self.colors["complete"] + msg.format(*objs))
 
-    def error(self, msg):
+    def error(self, msg, *objs):
         """
         Writes the specified error message to the console if verbose messaging
         is allowed.
 
         :param msg: The message to write.
+        :param objs: The collection of objects to format.
         """
         if self.is_verbose:
-            print(self.colors["error"] + msg)
+            print(self.colors["error"] + msg.format(*objs))
 
-    def fatal(self, msg):
+    def fatal(self, msg, *objs):
         """
         Writes the specified fatal error message to the console.
 
@@ -52,35 +54,39 @@ class DebugConsole:
         immediate program termination.
 
         :param msg: The message to write.
+        :param objs: The collection of objects to format.
         """
-        print(self.colors["fatal"] + msg)
+        print(self.colors["fatal"] + msg.format(*objs))
 
-    def info(self, msg):
+    def info(self, msg, *objs):
         """
         Writes the specified information message to the console if verbose
         messaging is allowed.
 
         :param msg: The message to write.
+        :param objs: The collection of objects to format.
         """
         if self.is_verbose:
-            print(msg)
+            print(msg.format(*objs))
 
-    def success(self, msg):
+    def success(self, msg, *objs):
         """
         Writes the specified success message to the console if verbose
         messaging is allowed.
 
         :param msg: The message to write.
+        :param objs: The collection of objects to format.
         """
         if self.is_verbose:
-            print(self.colors["success"] + msg)
+            print(self.colors["success"] + msg.format(*objs))
 
-    def warn(self, msg):
+    def warn(self, msg, *objs):
         """
         Writes the specified warning message to the console if verbose
         messaging is allowed.
 
         :param msg: The message to write.
+        :param objs: The collection of objects to format.
         """
         if self.is_verbose:
-            print(self.colors["warn"] + msg)
+            print(self.colors["warn"] + msg.format(*objs))
