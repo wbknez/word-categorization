@@ -120,3 +120,48 @@ class TrainingDatabase:
         """
         class_counts = np.unique(self.classes, return_counts=True)
         return class_counts[0], np.divide(class_counts[1], len(self.classes))
+
+
+class Vocabulary:
+    """
+    Represents a collection of words found across a large span of documents.
+
+    Please note that for this project, the list of words is offset by one due to
+    other data's stipulation that words are indexed starting from one.  The
+    count operation on this class returns the true number of words and not the
+    length of the offset list.
+
+    Attributes:
+        words (list): The list of words, off-set by one.
+    """
+
+    def __init__(self, words):
+        self.words = words
+
+        if self.words[0]:
+            self.words.insert(0, "")
+
+    def __eq__(self, other):
+        if isinstance(other, Vocabulary):
+            return self.words == other.words
+        return NotImplemented
+
+    def __getattr__(self, item):
+        if item == "count":
+            return len(self.words) - 1
+
+    def __getitem__(self, item):
+        return self.words[item]
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __iter__(self):
+        for i in range(1, len(self.words)):
+            yield self.words[i]
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
