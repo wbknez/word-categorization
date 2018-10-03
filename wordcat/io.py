@@ -152,6 +152,40 @@ class CsvIO:
         return TestingSet(ids, tests)
 
 
+class DataIO:
+    """
+
+    """
+
+    @staticmethod
+    def get_read_arguments(file_path):
+        return "rb" if file_path.endswith(".pkl") else "r"
+
+    @staticmethod
+    def get_write_arguments(file_path):
+        return "wb+" if file_path.endswith(".pkl") else "w+"
+
+    @staticmethod
+    def read_database(pool, file_path):
+        read_args = DataIO.get_read_arguments(file_path)
+        read_sparse = file_path.endswith(".pkl")
+
+        with open(file_path, read_args) as stream:
+            if read_sparse:
+                return SparseIO.read_database(stream)
+            return CsvIO.read_database(pool, stream)
+
+    @staticmethod
+    def read_set(pool, file_path):
+        read_args = DataIO.get_read_arguments(file_path)
+        read_sparse = file_path.endswith(".pkl")
+
+        with open(file_path, read_args) as stream:
+            if read_sparse:
+                return SparseIO.read_set(stream)
+            return CsvIO.read_set(pool, stream)
+
+
 class SparseIO:
     """
     Represents a collection of utility methods for working with Pickle files
@@ -169,12 +203,32 @@ class SparseIO:
         return pickle.load(stream)
 
     @staticmethod
+    def read_labels(stream):
+        """
+        Reads a collection of class labels from the specified Pickle stream.
+
+        :param stream: The Pickle stream to read from.
+        :return: A pre-created collection of class labels.
+        """
+        return pickle.load(stream)
+
+    @staticmethod
     def read_set(stream):
         """
         Reads a testing set from the specified Pickle stream.
 
         :param stream: The Pickle stream to read from.
         :return: A testing set created from sparse data.
+        """
+        return pickle.load(stream)
+
+    @staticmethod
+    def write_vocab(stream):
+        """
+        Reads a vocabulary set from the specified Pickle stream.
+
+        :param stream: The Pickle stream to read from.
+        :return: A pre-created vocabulary.
         """
         return pickle.load(stream)
 
