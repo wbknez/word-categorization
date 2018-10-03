@@ -10,20 +10,12 @@ class ClassLabels:
     Represents a collection of textual labels for an arbitrary number of
     classes.
 
-    Please note that for this project, the list of class labels is offset by
-    one due to other data's stipulation that classes themselves are indexed
-    starting from one.  The count operation on this class returns the true
-    number of classes and not the length of the offset list.
-
     Attributes:
-        classes (list): The list of class labels, off-set by one.
+        classes (dict): The list of class labels.
     """
 
     def __init__(self, classes):
         self.classes = classes
-
-        if classes[0]:
-            self.classes.insert(0, "")
 
     def __eq__(self, other):
         if isinstance(other, ClassLabels):
@@ -32,7 +24,7 @@ class ClassLabels:
 
     def __getattr__(self, item):
         if item == "count":
-            return len(self.classes) - 1
+            return len(self.classes)
 
     def __getitem__(self, item):
         return self.classes[item]
@@ -41,8 +33,8 @@ class ClassLabels:
         return self.__dict__.copy()
 
     def __iter__(self):
-        for i in range(1, len(self.classes) + 1):
-            yield self.classes[i]
+        for id, classz in self.classes.items():
+            yield id, classz
 
     def __ne__(self, other):
         return not self == other
