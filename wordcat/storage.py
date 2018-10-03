@@ -195,8 +195,8 @@ class Vocabulary:
         return self.__dict__.copy()
 
     def __iter__(self):
-        for i in range(1, len(self.words) + 1):
-            yield self.words[i]
+        for index, word in enumerate(self.words, 1):
+            yield index, word
 
     def __ne__(self, other):
         return not self == other
