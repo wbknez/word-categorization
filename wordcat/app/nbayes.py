@@ -23,6 +23,9 @@ def parse_arguments():
     """
     parser = ArgumentParser()
 
+    parser.add_argument("-b", "--beta",
+                        help="Laplace smoothing coefficient",
+                        type=float, default=(1/61188))
     parser.add_argument("-c", "--color",
                         help="enable colored console output",
                         action="store_true",
