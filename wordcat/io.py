@@ -11,7 +11,8 @@ from collections import namedtuple
 from functools import partial
 
 from wordcat.sparse import SparseMatrix, SparseVector
-from wordcat.storage import TrainingDatabase, TestingSet
+from wordcat.storage import TrainingDatabase, TestingSet, Vocabulary, \
+    ClassLabels
 
 
 class CsvIO:
@@ -116,6 +117,21 @@ class CsvIO:
         )
 
     @staticmethod
+    def read_labels(_, stream):
+        """
+        Reads a collection of class labels from the specified CSV stream.
+
+        :param _: The processing pool to use (unused).
+        :param stream: The CSV stream to read from.
+        :return: A collection of class labels.
+        """
+        classes = {}
+
+        for _, line in CsvIO.generate_lines(stream, delimiter=" "):
+            classes[int(line[0])] = line[1]
+        return ClassLabels(classes)
+
+    @staticmethod
     def read_set(pool, stream):
         """
         Resds a testing set from the specified CSV stream using the specified
@@ -151,45 +167,113 @@ class CsvIO:
 
         return TestingSet(ids, tests)
 
+    @staticmethod
+    def read_vocabulary(_, stream):
+        """
+        Reads a vocabulary set from the specified CSV stream.
+
+        :param _: The processing pool to use (unused).
+        :param stream: The CSV stream to read from.
+        :return: A collection of words to use as a vocabulary.
+        """
+        words = []
+
+        for _, line in CsvIO.generate_lines(stream):
+            words.append(line)
+        return Vocabulary(words)
+
 
 class DataIO:
     """
-
+    A collection of methods to read data objects in either CSV or Pickle
+    format without needing knowledge of which.
     """
 
     @staticmethod
     def get_read_arguments(file_path):
+        """
+        Parses the specified data file path and determines what type of
+
+        :param file_path: The path to a data file.
+        :return: The arguments to use to open a data file stream for reading.
+        """
         return "rb" if file_path.endswith(".pkl") else "r"
 
     @staticmethod
-    def get_write_arguments(file_path):
-        return "wb+" if file_path.endswith(".pkl") else "w+"
-
-    @staticmethod
     def read_database(pool, file_path):
+        """
+        Reads a training database from the file at the specified path using
+        the specified processing pool to improve performance.
+
+        :param pool: The processing pool to use.
+        :param file_path: The path to the data file to use.
+        :return: A training database.
+        """
         read_args = DataIO.get_read_arguments(file_path)
-        read_sparse = file_path.endswith(".pkl")
+        read_cache = file_path.endswith(".pkl")
 
         with open(file_path, read_args) as stream:
-            if read_sparse:
-                return SparseIO.read_database(stream)
+            if read_cache:
+                return PickleIO.read_database(stream)
             return CsvIO.read_database(pool, stream)
 
     @staticmethod
-    def read_set(pool, file_path):
+    def read_labels(_, file_path):
+        """
+        Reads a collection of class labels from the file at the specified path.
+
+        :param _: The processing pool to use (unused).
+        :param file_path: The path to the data file to use.
+        :return: A collection of class labels.
+        """
         read_args = DataIO.get_read_arguments(file_path)
-        read_sparse = file_path.endswith(".pkl")
+        read_cache = file_path.endswith(".pkl")
 
         with open(file_path, read_args) as stream:
-            if read_sparse:
-                return SparseIO.read_set(stream)
+            if read_cache:
+                return PickleIO.read_labels(stream)
+            return CsvIO.read_labels(_, stream)
+
+    @staticmethod
+    def read_set(pool, file_path):
+        """
+        Reads a testing set from the file at the specified path using the
+        specified processing pool to improve performance.
+
+        :param pool: The processing pool to use.
+        :param file_path: The path to the data file to use.
+        :return: A training set.
+        """
+        read_args = DataIO.get_read_arguments(file_path)
+        read_cache = file_path.endswith(".pkl")
+
+        with open(file_path, read_args) as stream:
+            if read_cache:
+                return PickleIO.read_set(stream)
             return CsvIO.read_set(pool, stream)
 
+    @staticmethod
+    def read_vocabulary(_, file_path):
+        """
+        Reads a vocabulary set from the file at the specified path.
 
-class SparseIO:
+        :param _: The processing pool to use (unused).
+        :param file_path: The path to the data file to use.
+        :return: A vocabulary set.
+        """
+        read_args = DataIO.get_read_arguments(file_path)
+        read_cache = file_path.endswith(".pkl")
+
+        with open(file_path, read_args) as stream:
+            if read_cache:
+                return PickleIO.read_vocabulary(stream)
+            return CsvIO.read_vocabulary(_, stream)
+
+
+class PickleIO:
     """
     Represents a collection of utility methods for working with Pickle files
-    for reading and storing sparse objects in this project.
+    for reading and storing objects in this project quickly and efficiently.
     """
 
     @staticmethod
@@ -223,7 +307,7 @@ class SparseIO:
         return pickle.load(stream)
 
     @staticmethod
-    def write_vocab(stream):
+    def read_vocabulary(stream):
         """
         Reads a vocabulary set from the specified Pickle stream.
 
@@ -243,6 +327,16 @@ class SparseIO:
         pickle.dump(tdb, stream, pickle.HIGHEST_PROTOCOL)
 
     @staticmethod
+    def write_labels(stream, labels):
+        """
+        Writes the specified class labels to the specified Pickle stream.
+
+        :param stream: The pickle stream to write to .
+        :param labels: The class labels to write.
+        """
+        pickle.dump(labels, stream, pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
     def write_set(stream, ts):
         """
         Writes the specified testing set to the specified Pickle stream.
@@ -251,3 +345,13 @@ class SparseIO:
         :param ts: The testing set to write.
         """
         pickle.dump(ts, stream, pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def write_vocabulary(stream, vocab):
+        """
+        Writes the specified vocabulary set to the specified Pickle stream.
+
+        :param stream: The pickle stream to write to.
+        :param vocab: The vocabulary to write.
+        """
+        pickle.dump(vocab, stream, pickle.HIGHEST_PROTOCOL)
