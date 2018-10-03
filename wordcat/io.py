@@ -146,7 +146,8 @@ class CsvIO:
             tests.append(SparseVector(data=np.array(result[2], copy=False,
                                                dtype=np.uint16),
                                       indices=np.array(result[1], copy=False,
-                                               dtype=np.uint32)))
+                                               dtype=np.uint32),
+                                      size=61189))
 
         return TestingSet(ids, tests)
 
