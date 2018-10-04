@@ -11,7 +11,7 @@ from collections import namedtuple
 from multiprocessing.pool import Pool
 from timeit import default_timer as timer
 
-from wordcat.io import DataIO, PickleIO
+from wordcat.io import CsvIO, PickleIO
 from wordcat.utils import DebugConsole
 
 
@@ -67,12 +67,13 @@ def process_data(spec, args, pool, dbgc):
     :param pool: The processing pool to use.
     :param dbgc: The debug console to use.
     """
-    source = os.path.join(args.input, "newsgrouplabels.txt")
-    dest = os.path.join(args.output, "newsgrouplabels.pkl")
+    source = os.path.join(args.input, spec.input)
+    dest = os.path.join(args.output, spec.output)
 
     dbgc.info("Processing {}...", spec.description)
     dbgc.info("Reading object from: {}.", source)
-    obj = spec.read_method(pool, source)
+    with open(source, "r") as stream:
+        obj = spec.read_method(pool, stream)
 
     dbgc.info("Writing object to: {}.", dest)
     with open(dest, "wb+") as stream:
@@ -94,14 +95,14 @@ def main():
     dbgc = DebugConsole(args.color, args.verbose)
     specifications = [
         DataSpecification("class labels", "newsgrouplabels.txt",
-                          "newgrouplabels.pkl",
-                          DataIO.read_labels, PickleIO.write_labels),
+                          "newsgrouplabels.pkl",
+                          CsvIO.read_labels, PickleIO.write_labels),
         DataSpecification("testing data", "testing.csv", "testing.pkl",
-                          DataIO.read_set, PickleIO.write_set),
+                          CsvIO.read_set, PickleIO.write_set),
         DataSpecification("training data", "training.csv", "training.pkl",
-                          DataIO.read_database, PickleIO.write_database),
+                          CsvIO.read_database, PickleIO.write_database),
         DataSpecification("vocabulary set", "vocabulary.txt", "vocabulary.pkl",
-                          DataIO.read_vocabulary, PickleIO.write_vocabulary)
+                          CsvIO.read_vocabulary, PickleIO.write_vocabulary)
     ]
 
     if not os.path.exists(args.input) or not os.path.isdir(args.input):
