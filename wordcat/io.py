@@ -113,7 +113,7 @@ class CsvIO:
             SparseMatrix(np.array(data, copy=False, dtype=np.uint16),
                          np.array(rows, copy=False, dtype=np.uint32),
                          np.array(cols, copy=False, dtype=np.uint32),
-                         (max(rows) + 1, max(cols) + 2))
+                         (max(rows) + 1, max(cols) + 1))
         )
 
     @staticmethod
