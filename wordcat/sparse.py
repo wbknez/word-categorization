@@ -183,7 +183,8 @@ class SparseVector:
         of indices that were not used in the calculation.
         """
         if self.size != vec.size:
-            raise ValueError("Vector sizes must match in order to multiply.")
+            raise ValueError("Vector sizes must match in order to multiply: "
+                             "{} is not {}.".format(self.size, vec.size))
 
         my_indices = np.in1d(self.indices, vec.indices)
         vec_indices = np.in1d(vec.indices, self.indices)
@@ -192,3 +193,17 @@ class SparseVector:
                                         vec.data[vec_indices]),
                             self.indices[my_indices], np.size(my_indices)), \
                np.setdiff1d(self.indices, self.indices[my_indices]).size
+
+    @staticmethod
+    def from_list(dense_list):
+        data = []
+        indices = []
+
+        for index, element in enumerate(dense_list):
+            if element != 0:
+                data.append(element)
+                indices.append(index)
+
+        return SparseVector(np.array(data, copy=False, dtype=np.uint16),
+                            np.array(indices, copy=False, dtype=np.uint32),
+                            size=len(dense_list))
