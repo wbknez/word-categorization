@@ -196,6 +196,12 @@ class SparseVector:
 
     @staticmethod
     def from_list(dense_list):
+        """
+        Creates a sparse vector from the specified list of elements.
+
+        :param dense_list: The list of elements to use.
+        :return: A new sparse vector.
+        """
         data = []
         indices = []
 
