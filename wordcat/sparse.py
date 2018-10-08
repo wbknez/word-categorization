@@ -195,6 +195,20 @@ class SparseVector:
                np.setdiff1d(self.indices, self.indices[my_indices],
                             assume_unique=True)
 
+    def scale(self, scalar):
+        """
+        Computes the sparse vector that results from scaling this one with
+        by the specified amount.
+
+        :param scalar: The (singular) amount to scale by.
+        :return: A scaled sparse vector.
+        """
+        return SparseVector(
+            np.multiply(self.data, scalar),
+            self.indices,
+            self.size
+        )
+
     def sum(self):
         """
         Computes the sum of the data elements of this sparse vector.
