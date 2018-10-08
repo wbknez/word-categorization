@@ -195,6 +195,14 @@ class SparseVector:
                np.setdiff1d(self.indices, self.indices[my_indices],
                             assume_unique=True)
 
+    def sum(self):
+        """
+        Computes the sum of the data elements of this sparse vector.
+
+        :return: The sum.
+        """
+        return np.sum(self.data)
+
     @staticmethod
     def from_list(dense_list):
         """
