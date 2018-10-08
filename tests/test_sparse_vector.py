@@ -135,3 +135,22 @@ class SparseVectorTest(TestCase):
         result = vec.sum()
 
         self.assertEqual(result, expected)
+
+    def test_from_list_with_no_unique_elements(self):
+        vec = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+        self.assertEqual(vec.size, 10)
+        self.assertTrue(np.array_equal(vec.data, np.array([], dtype=np.uint16)))
+        self.assertTrue(np.array_equal(vec.indices,
+                                       np.array([], dtype=np.uint32)))
+
+    def test_from_list_with_several_unique_elements(self):
+        vec = SparseVector.from_list([0, 1, 2, 0, 3, 4, 0, 5, 6, 0, 7, 8])
+
+        self.assertEqual(vec.size, 12)
+        self.assertTrue(np.array_equal(np.array([1, 2, 3, 4, 5, 6, 7, 8],
+                                                dtype=np.uint16),
+                                       vec.data))
+        self.assertTrue(np.array_equal(np.array([1, 2, 4, 5, 7, 8, 10, 11],
+                                                dtype=np.uint32),
+                                       vec.indices))
