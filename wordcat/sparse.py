@@ -295,3 +295,20 @@ class SparseVector:
         return SparseVector(np.array(data, copy=False, dtype=np.uint16),
                             np.array(indices, copy=False, dtype=np.uint32),
                             size=len(dense_list))
+
+    @staticmethod
+    def from_lists(data, indices, size, dtype=None):
+        """
+        Creates a sparse vector from the specified lists of elements and
+        indices with the specified total size.
+
+        :param data: The list of elements to use.
+        :param indices: The list of indices to use.
+        :param size: The total size to use.
+        :return: A new sparse vector.
+        """
+        return SparseVector(
+            np.array(data, copy=False, dtype=dtype),
+            np.array(indices, copy=False, dtype=np.uint32),
+            size
+        )
