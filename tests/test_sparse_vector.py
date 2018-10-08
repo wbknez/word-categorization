@@ -76,3 +76,38 @@ class SparseVectorTest(TestCase):
 
         self.assertEqual(result, expected0)
         self.assertTrue(np.array_equal(remainder, expected1))
+
+    def test_scale_with_random(self):
+        array = np.random.randint(0, 100, 30)
+        vec = SparseVector.from_list(array)
+        scalar = np.random.randint(1, 32)
+
+        expected = SparseVector.from_list(np.multiply(array, scalar))
+        result = vec.scale(scalar)
+
+        self.assertEqual(result, expected)
+
+    def test_scale_with_zero(self):
+        vec = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+
+        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+        result = vec.scale(2)
+
+        self.assertEqual(expected, result)
+
+    def test_sum_with_random(self):
+        array = np.random.randint(0, 100, 20)
+        vec = SparseVector.from_list(array)
+
+        expected = np.sum(array)
+        result = vec.sum()
+
+        self.assertEqual(result, expected)
+
+    def test_sum_with_zero(self):
+        vec = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+
+        expected = 0
+        result = vec.sum()
+
+        self.assertEqual(result, expected)
