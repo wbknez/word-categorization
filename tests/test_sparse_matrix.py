@@ -48,6 +48,19 @@ class SparseMatrixTest(TestCase):
         self.assertEqual(expected1, result1)
         self.assertEqual(expected2, result2)
 
+    def test_get_columns_using_simple_matrix(self):
+        mat = SparseMatrix.from_list([[0, 2, 0], [0, 0, 3], [1, 0, 0]])
+
+        expected = [
+            SparseVector.from_list([0, 0, 1]),
+            SparseVector.from_list([2, 0, 0]),
+            SparseVector.from_list([0, 3, 0])
+        ]
+        result = mat.get_columns()
+
+        for ex, res in zip(expected, result):
+            self.assertEqual(res, ex)
+
     def test_get_row_using_simple_matrix(self):
         mat = SparseMatrix.from_list([[0, 2, 0], [0, 0, 3], [1, 0, 0]])
 
@@ -62,6 +75,19 @@ class SparseMatrixTest(TestCase):
         self.assertEqual(expected0, result0)
         self.assertEqual(expected1, result1)
         self.assertEqual(expected2, result2)
+
+    def test_get_rows_using_simple_matrix(self):
+        mat = SparseMatrix.from_list([[0, 2, 0], [0, 0, 3], [1, 0, 0]])
+
+        expected = [
+            SparseVector.from_list([0, 2, 0]),
+            SparseVector.from_list([0, 0, 3]),
+            SparseVector.from_list([1, 0, 0])
+        ]
+        result = mat.get_rows()
+
+        for ex, res in zip(expected, result):
+            self.assertEqual(res, ex)
 
     def test_from_list_with_no_unique_elements(self):
         mat = SparseMatrix.from_list([[0, 0, 0, 0], [0, 0, 0, 0],

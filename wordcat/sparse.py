@@ -95,6 +95,16 @@ class SparseMatrix:
         return SparseVector(self.data[indices], self.rows[indices],
                             self.shape[0])
 
+    def get_columns(self):
+        """
+        Returns a generator over the collection of columns in this sparse
+        matrix.
+
+        :return: A collection of columns.
+        """
+        for i in range(self.shape[1]):
+            yield self.get_column(i)
+
     def get_row(self, index):
         """
         Returns the row at the specified index in this sparse matrix as a
@@ -110,6 +120,16 @@ class SparseMatrix:
         indices = np.where(self.rows == index)[0]
         return SparseVector(self.data[indices], self.cols[indices],
                             self.shape[1])
+
+    def get_rows(self):
+        """
+        Returns a generator over the collection of columns in this sparse
+        matrix.
+
+        :return: A collection of columns.
+        """
+        for i in range(self.shape[0]):
+            yield self.get_row(i)
 
     @staticmethod
     def from_list(dense_matrix):
