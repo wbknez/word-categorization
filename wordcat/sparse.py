@@ -209,6 +209,18 @@ class SparseVector:
             self.size
         )
 
+    def slice(self, indices):
+        """
+        Computes the sparse vector that results from slicing this one with
+        the specified collection of indices.
+
+        :param indices: The indices to slice with.
+        :return: A sliced sparse vector.
+        """
+        return SparseVector(
+            self.data[indices], self.indices[indices], self.size
+        )
+
     def sum(self):
         """
         Computes the sum of the data elements of this sparse vector.
