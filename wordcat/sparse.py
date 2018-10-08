@@ -175,12 +175,12 @@ class SparseVector:
     def multiply(self, vec):
         """
         Multiplies this sparse vector with the specified vector, returning
-        both the product via indice intersection as well as the number of
-        non-applied indices as a remainder.
+        both the product via indice intersection as well as the non-applied
+        indices as a remainder.
 
         :param vec: The sparse vector to multiply with.
-        :return: The product as an indice intersection and the total number
-        of indices that were not used in the calculation.
+        :return: The product as an indice intersection and the remaining
+        indices that were not used in the calculation.
         """
         if self.size != vec.size:
             raise ValueError("Vector sizes must match in order to multiply: "
@@ -192,7 +192,8 @@ class SparseVector:
         return SparseVector(np.multiply(self.data[my_indices],
                                         vec.data[vec_indices]),
                             self.indices[my_indices], np.size(my_indices)), \
-               np.setdiff1d(self.indices, self.indices[my_indices]).size
+               np.setdiff1d(self.indices, self.indices[my_indices],
+                            assume_unique=True)
 
     @staticmethod
     def from_list(dense_list):

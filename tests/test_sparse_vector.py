@@ -1,6 +1,7 @@
 """
-
+Contains unit tests to verify that sparse vector operations work as intended.
 """
+import numpy as np
 from unittest import TestCase
 
 from wordcat.sparse import SparseVector
@@ -25,28 +26,53 @@ class SparseVectorTest(TestCase):
         vec0 = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
         vec1 = SparseVector.from_list([5, 0, 6, 0, 7, 0, 8])
 
-        expected = SparseVector.from_list([5, 0, 12, 0, 21, 0, 32])
+        expected0 = SparseVector.from_list([5, 0, 12, 0, 21, 0, 32])
+        expected1 = np.array([])
         result, remainder = vec0.multiply(vec1)
 
-        self.assertEqual(result, expected)
-        self.assertEqual(remainder, 0)
+        self.assertEqual(result, expected0)
+        self.assertTrue(np.array_equal(remainder, expected1))
 
     def test_multiply_with_identity(self):
         vec = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
         one = SparseVector.from_list([1, 1, 1, 1, 1, 1, 1])
 
-        expected = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
+        expected0 = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
+        expected1 = np.array([])
         result, remainder = vec.multiply(one)
 
-        self.assertEqual(result, expected)
-        self.assertEqual(remainder, 0)
+        self.assertEqual(result, expected0)
+        self.assertTrue(np.array_equal(remainder, expected1))
+
+    def test_multiply_with_unequal_indices(self):
+        vec0 = SparseVector.from_list([1, 3, 2, 0, 3, 5, 4])
+        vec1 = SparseVector.from_list([5, 0, 6, 4, 7, 0, 8])
+
+        expected0 = SparseVector.from_list([5, 0, 12, 0, 21, 0, 32])
+        expected1 = np.array([1, 5])
+        result, remainder = vec0.multiply(vec1)
+
+        self.assertEqual(result, expected0)
+        self.assertTrue(np.array_equal(remainder, expected1))
+
+    def test_multiply_with_unequal_indices_again(self):
+        vec0 = SparseVector.from_list([0, 1, 2, 0, 3, 0, 4])
+        vec1 = SparseVector.from_list([5, 3, 6, 4, 7, 5, 8])
+
+        expected0 = SparseVector.from_list([0, 3, 12, 0, 21, 0, 32])
+        expected1 = np.array([])
+        result, remainder = vec0.multiply(vec1)
+
+        self.assertEqual(result, expected0)
+        self.assertTrue(np.array_equal(remainder, expected1))
 
     def test_multiply_with_zero(self):
         vec = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
         zero = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
 
-        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+        expected0 = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+        expected1 = np.array([0, 2, 4, 6])
         result, remainder = vec.multiply(zero)
 
-        self.assertEqual(result, expected)
-        self.assertEqual(remainder, 4)
+        self.assertEqual(result, expected0)
+        self.assertTrue(np.array_equal(remainder, expected1))
