@@ -150,6 +150,10 @@ class SparseVector:
         self.indices = indices
         self.size = size
 
+    def __copy__(self):
+        return SparseVector(np.copy(self.data), np.copy(self.indices),
+                            self.size)
+
     def __eq__(self, other):
         if isinstance(other, SparseVector):
             return np.array_equal(self.data, other.data) and \
@@ -159,6 +163,9 @@ class SparseVector:
     def __getattr__(self, item):
         if item == "dtype":
             return self.data.dtype
+
+    def __getitem__(self, item):
+        return self.data[item], self.indices[item]
 
     def __getstate__(self):
         return self.__dict__.copy()
@@ -211,10 +218,16 @@ class SparseVector:
 
     def slice(self, indices):
         """
-        Computes the sparse vector that results from slicing this one with
-        the specified collection of indices.
+        Slices this sparse vector using the specified indices.
 
-        :param indices: The indices to slice with.
+        Please note that this is not a typical slicing operation.  This
+        function returns a sparse vector with the following properties:
+            - it has the same size as the original vector, and
+            - its data and indices are direct slices of the original vector.
+        Thus, this operation may be considered a sub-vectorization with
+        post-conditions.
+
+        :param indices: The indices to slicy by.
         :return: A sliced sparse vector.
         """
         return SparseVector(

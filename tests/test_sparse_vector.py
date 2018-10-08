@@ -95,6 +95,30 @@ class SparseVectorTest(TestCase):
 
         self.assertEqual(expected, result)
 
+    def test_slice_with_full_vector(self):
+        vec = SparseVector.from_list([1, 2, 3, 4, 5, 6, 7])
+
+        expected = SparseVector.from_list([1, 2, 3, 4, 5, 6, 7])
+        result = vec.slice([0, 1, 2, 3, 4, 5, 6])
+
+        self.assertEqual(result, expected)
+
+    def test_slice_with_sparse_vector(self):
+        vec = SparseVector.from_list([0, 1, 0, 2, 0, 3, 0])
+
+        expected = SparseVector.from_list([0, 0, 0, 2, 0, 3, 0])
+        result = vec.slice([1, 2])
+
+        self.assertEqual(result, expected)
+
+    def test_slice_with_zero(self):
+        vec = SparseVector.from_list([1, 2, 3, 4, 5, 6, 7])
+
+        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+        result = vec.slice([])
+
+        self.assertEqual(expected, result)
+
     def test_sum_with_random(self):
         array = np.random.randint(0, 100, 20)
         vec = SparseVector.from_list(array)
