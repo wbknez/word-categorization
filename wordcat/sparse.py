@@ -1,6 +1,8 @@
 """
 Contains classes and functions pertaining to sparse data structures.
 """
+from copy import copy
+
 import numpy as np
 
 
@@ -37,6 +39,12 @@ class SparseMatrix:
         self.rows = rows
         self.shape = shape
 
+    def __copy__(self):
+        return SparseMatrix(
+            np.copy(self.data), np.copy(self.rows), np.copy(self.cols),
+            copy(self.shape)
+        )
+
     def __eq__(self, other):
         if isinstance(other, SparseMatrix):
             return np.array_equal(self.cols, other.cols) and \
@@ -48,6 +56,9 @@ class SparseMatrix:
     def __getattr__(self, item):
         if item == "dtype":
             return self.data.dtype
+
+    def __getitem__(self, item):
+        return self.data[item], (self.rows[item], self.cols[item])
 
     def __getstate__(self):
         return self.__dict__.copy()
@@ -70,32 +81,35 @@ class SparseMatrix:
 
     def get_column(self, index):
         """
-        Returns a data-only view of this sparse matrix located at the
-        specified column index.
-
-        Please note that the resulting data array is stacked horizontally,
-        not vertically, despite describing a column.
+        Returns the column at the specified index in this sparse matrix as a
+        sparse vector whose indices represent valid rows.
 
         :param index: The column index to use.
-        :return: A column of data at an index.
+        :return: A sparse vector of column data at an index.
         :raise IndexError: If the index is out of bounds.
         """
         if index < 0 or index >= self.shape[1]:
             raise IndexError("Column index is out of bounds: {}".format(index))
-        return self.data[np.where(self.cols == index)]
+
+        indices = np.where(self.cols == index)
+        return SparseVector(self.data[indices], self.rows[indices],
+                            self.shape[0])
 
     def get_row(self, index):
         """
-        Returns a data-only view of this sparse matrix located at the
-        specified row index.
+        Returns the row at the specified index in this sparse matrix as a
+        sparse vector whose indices represent valid columns.
 
         :param index: The row index to use.
-        :return: A row of data at an index.
+        :return: A sparse vector of row data at an index.
         :raise IndexError: If the index is out of bounds.
         """
         if index < 0 or index >= self.shape[0]:
             raise IndexError("Row index is out of bounds: {}".format(index))
-        return self.data[np.where(self.rows == index)]
+
+        indices = np.where(self.rows == index)[0]
+        return SparseVector(self.data[indices], self.cols[indices],
+                            self.shape[1])
 
     @staticmethod
     def from_list(dense_matrix):

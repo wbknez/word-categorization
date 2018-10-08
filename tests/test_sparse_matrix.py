@@ -5,7 +5,7 @@ intended.
 import numpy as np
 from unittest import TestCase
 
-from wordcat.sparse import SparseMatrix
+from wordcat.sparse import SparseMatrix, SparseVector
 
 
 class SparseMatrixTest(TestCase):
@@ -34,34 +34,34 @@ class SparseMatrixTest(TestCase):
                          np.zeros(10, np.int), (10, 10))
 
     def test_get_column_using_simple_matrix(self):
-        mat = SparseMatrix.from_list([[3, 0, 0], [0, 0, 1], [5, 0, 3]])
+        mat = SparseMatrix.from_list([[0, 2, 0], [0, 0, 3], [1, 0, 0]])
 
-        expected0 = np.array([3, 5])
-        expected1 = np.array([])
-        expected2 = np.array([1, 3])
+        expected0 = SparseVector.from_list([0, 0, 1])
+        expected1 = SparseVector.from_list([2, 0, 0])
+        expected2 = SparseVector.from_list([0, 3, 0])
 
         result0 = mat.get_column(0)
         result1 = mat.get_column(1)
         result2 = mat.get_column(2)
 
-        self.assertTrue(np.array_equal(result0, expected0))
-        self.assertTrue(np.array_equal(result1, expected1))
-        self.assertTrue(np.array_equal(result2, expected2))
+        self.assertEqual(expected0, result0)
+        self.assertEqual(expected1, result1)
+        self.assertEqual(expected2, result2)
 
     def test_get_row_using_simple_matrix(self):
-        mat = SparseMatrix.from_list([[3, 0, 0], [0, 0, 1], [5, 0, 3]])
+        mat = SparseMatrix.from_list([[0, 2, 0], [0, 0, 3], [1, 0, 0]])
 
-        expected0 = np.array([3])
-        expected1 = np.array([1])
-        expected2 = np.array([5, 3])
+        expected0 = SparseVector.from_list([0, 2, 0])
+        expected1 = SparseVector.from_list([0, 0, 3])
+        expected2 = SparseVector.from_list([1, 0, 0])
 
         result0 = mat.get_row(0)
         result1 = mat.get_row(1)
         result2 = mat.get_row(2)
 
-        self.assertTrue(np.array_equal(result0, expected0))
-        self.assertTrue(np.array_equal(result1, expected1))
-        self.assertTrue(np.array_equal(result2, expected2))
+        self.assertEqual(expected0, result0)
+        self.assertEqual(expected1, result1)
+        self.assertEqual(expected2, result2)
 
     def test_from_list_with_no_unique_elements(self):
         mat = SparseMatrix.from_list([[0, 0, 0, 0], [0, 0, 0, 0],
