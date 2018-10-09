@@ -12,6 +12,16 @@ class SparseVectorTest(TestCase):
     Test suite for SparseVector.
     """
 
+    def test_log2_with_random(self):
+        array = np.random.randint(0, 20, 20)
+        vec = SparseVector.from_list(array)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.log2(expected.data)
+        result = vec.log2()
+
+        self.assertEqual(result, expected)
+
     def test_multiply_throws_if_vector_lengths_are_not_equal(self):
         vec0 = SparseVector.from_list([1, 2, 3, 4])
         vec1 = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
@@ -77,8 +87,27 @@ class SparseVectorTest(TestCase):
         self.assertEqual(result, expected0)
         self.assertTrue(np.array_equal(remainder, expected1))
 
-    def test_scale_with_random(self):
+    def test_plus_with_random(self):
         array = np.random.randint(0, 100, 30)
+        vec = SparseVector.from_list(array)
+        scalar = np.random.randint(1, 32)
+
+        expected = SparseVector.from_list(np.add(array, scalar))
+        result = vec.plus(scalar)
+
+        self.assertEqual(result, expected)
+
+    def test_plus_with_zero(self):
+        vec = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+
+        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+        result = vec.plus(30)
+
+        self.assertEqual(expected, result)
+
+    def test_scale_with_random(self):
+        array = np.random.randint(0, 100, 20)
+
         vec = SparseVector.from_list(array)
         scalar = np.random.randint(1, 32)
 

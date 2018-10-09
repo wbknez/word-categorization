@@ -131,6 +131,14 @@ class SparseMatrix:
         for i in range(self.shape[0]):
             yield self.get_row(i)
 
+    def sum(self):
+        """
+        Computes the sum of the data elements of this sparse matrix.
+
+        :return: The sum.
+        """
+        return np.sum(self.data)
+
     @staticmethod
     def from_list(dense_matrix):
         """
@@ -213,6 +221,15 @@ class SparseVector:
     def __setstate__(self, state):
         self.__dict__.update(state)
 
+    def log2(self):
+        """
+        Computes the sparse vector that results from taking the base-2
+        logarithm of this one.
+
+        :return: The base-2 logarithm of a sparse vector.
+        """
+        return SparseVector(np.log2(self.data), self.indices, self.size)
+
     def multiply(self, vec):
         """
         Multiplies this sparse vector with the specified vector, returning
@@ -235,6 +252,16 @@ class SparseVector:
                             self.indices[my_indices], np.size(my_indices)), \
                np.setdiff1d(self.indices, self.indices[my_indices],
                             assume_unique=True)
+
+    def plus(self, scalar):
+        """
+        Computes the sparse vector that results from increasing this one by the
+        specified amount.
+
+        :param scalar: The scalar to add with.
+        :return: The sum of a sparse vector and a scalar.
+        """
+        return SparseVector(np.add(self.data, scalar), self.indices, self.size)
 
     def scale(self, scalar):
         """
