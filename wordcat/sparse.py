@@ -277,11 +277,14 @@ class SparseVector:
             src_idx = np.in1d(self.indices, other.indices)
             dest_idx = np.in1d(other.indices, self.indices)
 
-            return SparseVector(
+            result = SparseVector(
                 np.multiply(self.data[src_idx], other.data[dest_idx]),
                 self.indices[src_idx],
                 self.size
             )
+            result.compact()
+
+            return result
 
         except TypeError:
             return NotImplemented
@@ -412,6 +415,10 @@ class SparseVector:
         """
         Computes both the set intersection and difference between this sparse
         vector and the specified one.
+
+        Please note that this operation is not commutative.  That is,
+        given two sparse vectors A and B, venn(A) != venn(B) due to the
+        potentially differing sets of indices per vector.
 
         :param other: A sparse vector to use.
         :return: A tuple whose first element is the intersection and the
