@@ -201,8 +201,7 @@ class SparseVector:
 
     def __add__(self, other):
         if isinstance(other, (float, int)):
-            other = SparseVector(np.full(self.data.size, other,
-                                         dtype=self.data.dtype),
+            other = SparseVector(np.full(self.data.size, other),
                                  self.indices, self.size)
 
         try:
@@ -265,8 +264,7 @@ class SparseVector:
 
     def __mul__(self, other):
         if isinstance(other, (float, int)):
-            other = SparseVector(np.full(self.data.size, other,
-                                         dtype=self.data.dtype),
+            other = SparseVector(np.full(self.data.size, other),
                                  self.indices, self.size)
 
         try:
@@ -307,8 +305,7 @@ class SparseVector:
 
     def __sub__(self, other):
         if isinstance(other, (float, int)):
-            other = SparseVector(np.full(self.data.size, other,
-                                         dtype=self.data.dtype),
+            other = SparseVector(np.full(self.data.size, other),
                                  self.indices, self.size)
 
         try:
@@ -336,8 +333,7 @@ class SparseVector:
             raise ZeroDivisionError("Sparse vectors cannot divide by zero.")
 
         if isinstance(other, (float, int)):
-            other = SparseVector(np.full(self.data.size, other,
-                                         dtype=self.data.dtype),
+            other = SparseVector(np.full(self.data.size, other),
                                  self.indices, self.size)
 
         try:
