@@ -465,3 +465,17 @@ class SparseVector:
             np.array(indices, copy=False, dtype=np.uint32),
             size
         )
+
+    @staticmethod
+    def zero(size, dtype=np.uint16):
+        """
+        Creates a zero-element sparse vector with the specified size and
+        whose data array supports the specified type.
+
+        :param size: The total size to use.
+        :param dtype: The element data type to use.
+        :return: A sized zero-element sparse vector.
+        """
+        return SparseVector(
+            np.array([], dtype=dtype), np.array([], dtype=np.uint32), size
+        )
