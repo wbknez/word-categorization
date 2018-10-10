@@ -12,6 +12,25 @@ class SparseVectorTest(TestCase):
     Test suite for SparseVector.
     """
 
+    def test_abs_with_random(self):
+        array = np.random.randint(-20, 20, 20)
+        vec = SparseVector.from_list(array)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.abs(expected.data)
+        result = vec.abs()
+
+        self.assertEqual(result, expected)
+
+    def test_abs_with_zero(self):
+        array = np.random.randint(0, 1, 20)
+        vec = SparseVector.from_list(array)
+
+        expected = SparseVector.from_list(array)
+        result = vec.abs()
+
+        self.assertEqual(result, expected)
+
     def test_add_with_random_vector(self):
         array_a = np.array([1, 0, 2, 0, 3, 0, 4, 5])
         array_b = np.array([2, 1, 0, 3, 4, 12, 0, 7])
@@ -51,6 +70,26 @@ class SparseVectorTest(TestCase):
 
         expected = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
         result = vec + scalar
+
+        self.assertEqual(result, expected)
+
+    def test_exp_with_random(self):
+        array = np.random.randint(0, 20, 20)
+        vec = SparseVector.from_list(array)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.exp(expected.data)
+        result = vec.exp()
+
+        self.assertEqual(result, expected)
+
+    def test_exp_with_zero(self):
+        array = np.random.randint(0, 1, 20)
+        vec = SparseVector.from_list(array)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.exp(expected.data)
+        result = vec.exp()
 
         self.assertEqual(result, expected)
 
@@ -110,6 +149,28 @@ class SparseVectorTest(TestCase):
 
         expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
         result = vec * scalar
+
+        self.assertEqual(result, expected)
+
+    def test_power_with_random(self):
+        array = np.random.randint(0, 20, 20)
+        vec = SparseVector.from_list(array)
+        a = np.random.randint(2, 10)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.power(expected.data, a)
+        result = vec.power(a)
+
+        self.assertEqual(result, expected)
+
+    def test_power_with_zero(self):
+        array = np.random.randint(0, 1, 20)
+        vec = SparseVector.from_list(array)
+        a = np.random.randint(2, 10)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.power(expected.data, a)
+        result = vec.power(a)
 
         self.assertEqual(result, expected)
 
