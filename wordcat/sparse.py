@@ -172,6 +172,13 @@ class SparseVector:
     Represents a matrix that only stores non-zero elements, making it memory
     efficient for managing large amounts of sparse sequential data.
 
+    Please note that all mathematical operations on sparse vectors are:
+        1. performed element-wise, and
+        2. immutable with respect to the operands.
+    That is, all mathematical operations return copies of the underlying
+    numeric and indice data, making each new sparse vector unique and all
+    sparse vectors immutable with respect to the operations performed upon them.
+
     Attributes:
         data (np.array): The array of non-zero elements.
         indices (np.array): The array of indices.
@@ -191,6 +198,32 @@ class SparseVector:
         self.data = data
         self.indices = indices
         self.size = size
+
+    def __add__(self, other):
+        if isinstance(other, (float, int)):
+            other = SparseVector(np.full(self.data.size, other,
+                                         dtype=self.data.dtype),
+                                 self.indices, self.size)
+
+        try:
+            if self.size != other.size:
+                raise ValueError("Vector sizes must be equal for mathematical "
+                                 "operations.")
+
+            src_idx = np.in1d(self.indices, other.indices)
+            dest_idx = np.in1d(other.indices, self.indices)
+
+            result = SparseVector(
+                np.add(self.data[src_idx], other.data[dest_idx]),
+                self.indices[src_idx],
+                self.size
+            )
+            result.compact()
+
+            return result
+
+        except TypeError:
+            return NotImplemented
 
     def __copy__(self):
         return SparseVector(np.copy(self.data), np.copy(self.indices),
@@ -212,14 +245,141 @@ class SparseVector:
     def __getstate__(self):
         return self.__dict__.copy()
 
+    def __hash__(self):
+        return hash((self.data, self.indices, self.size))
+
+    def __iter__(self):
+        for i in range(self.data.size):
+            yield self.data[i], self.indices[i]
+
     def __len__(self):
+        """
+        Returns the number of non-zero elements in this sparse vector.
+
+        Please note that this value is inherently different than that
+        returned by "size".
+
+        :return: The number of non-zero elements.
+        """
         return self.data.size
+
+    def __mul__(self, other):
+        if isinstance(other, (float, int)):
+            other = SparseVector(np.full(self.data.size, other,
+                                         dtype=self.data.dtype),
+                                 self.indices, self.size)
+
+        try:
+            if self.size != other.size:
+                raise ValueError("Vector sizes must be equal for mathematical "
+                                 "operations.")
+
+            src_idx = np.in1d(self.indices, other.indices)
+            dest_idx = np.in1d(other.indices, self.indices)
+
+            return SparseVector(
+                np.multiply(self.data[src_idx], other.data[dest_idx]),
+                self.indices[src_idx],
+                self.size
+            )
+
+        except TypeError:
+            return NotImplemented
 
     def __ne__(self, other):
         return not self == other
 
+    def __neg__(self):
+        return SparseVector(np.negative(self.data), self.indices, self.size)
+
+    def __repr__(self):
+        return "{}({},{},{})".format(self.__class__, repr(self.data),
+                                     repr(self.indices), repr(self.size))
+
     def __setstate__(self, state):
         self.__dict__.update(state)
+
+    def __str__(self):
+        return "({}, {}, {})".format(self.data, self.indices, self.size)
+
+    def __sub__(self, other):
+        if isinstance(other, (float, int)):
+            other = SparseVector(np.full(self.data.size, other,
+                                         dtype=self.data.dtype),
+                                 self.indices, self.size)
+
+        try:
+            if self.size != other.size:
+                raise ValueError("Vector sizes must be equal for mathematical "
+                                 "operations.")
+
+            src_idx = np.in1d(self.indices, other.indices)
+            dest_idx = np.in1d(other.indices, self.indices)
+
+            result = SparseVector(
+                np.subtract(self.data[src_idx], other.data[dest_idx]),
+                self.indices[src_idx],
+                self.size
+            )
+            result.compact()
+
+            return result
+
+        except TypeError:
+            return NotImplemented
+
+    def __truediv__(self, other):
+        if other == 0:
+            raise ZeroDivisionError("Sparse vectors cannot divide by zero.")
+
+        if isinstance(other, (float, int)):
+            other = SparseVector(np.full(self.data.size, other,
+                                         dtype=self.data.dtype),
+                                 self.indices, self.size)
+
+        try:
+            if self.size != other.size:
+                raise ValueError("Vector sizes must be equal for mathematical "
+                                 "operations.")
+
+            src_idx = np.in1d(self.indices, other.indices)
+            dest_idx = np.in1d(other.indices, self.indices)
+
+            return SparseVector(
+                np.divide(self.data[src_idx], other.data[dest_idx]),
+                self.indices[src_idx],
+                self.size
+            )
+
+        except TypeError:
+            return NotImplemented
+
+    def abs(self):
+        """
+        Computes the sparse vector that results from taking the absolute
+        value of this one.
+
+        :return: The absolute value of a sparse vector.
+        """
+        return SparseVector(np.abs(self.data), self.indices, self.size)
+
+    def compact(self):
+        """
+
+        :return:
+        """
+        zero_idx = np.where(self.data == 0)
+        self.data = np.delete(self.data, zero_idx)
+        self.indices = np.delete(self.indices, zero_idx)
+
+    def exp(self):
+        """
+        Computes the sparse vector that results from exponentiating
+        this one.
+
+        :return: The exp of a sparse vector.
+        """
+        return SparseVector(np.exp(self.data), self.indices, self.size)
 
     def log2(self):
         """
@@ -230,78 +390,41 @@ class SparseVector:
         """
         return SparseVector(np.log2(self.data), self.indices, self.size)
 
-    def multiply(self, vec):
+    def power(self, a):
         """
-        Multiplies this sparse vector with the specified vector, returning
-        both the product via indice intersection as well as the non-applied
-        indices as a remainder.
+        Computes the sparse vector that results from taking this one and
+        raising it to the specified power.
 
-        :param vec: The sparse vector to multiply with.
-        :return: The product as an indice intersection and the remaining
-        indices that were not used in the calculation.
+        :param a: The amount to raise.
+        :return: A sparse vector raised to a power.
         """
-        if self.size != vec.size:
-            raise ValueError("Vector sizes must match in order to multiply: "
-                             "{} is not {}.".format(self.size, vec.size))
-
-        my_indices = np.in1d(self.indices, vec.indices)
-        vec_indices = np.in1d(vec.indices, self.indices)
-
-        return SparseVector(np.multiply(self.data[my_indices],
-                                        vec.data[vec_indices]),
-                            self.indices[my_indices], np.size(my_indices)), \
-               np.setdiff1d(self.indices, self.indices[my_indices],
-                            assume_unique=True)
-
-    def plus(self, scalar):
-        """
-        Computes the sparse vector that results from increasing this one by the
-        specified amount.
-
-        :param scalar: The scalar to add with.
-        :return: The sum of a sparse vector and a scalar.
-        """
-        return SparseVector(np.add(self.data, scalar), self.indices, self.size)
-
-    def scale(self, scalar):
-        """
-        Computes the sparse vector that results from scaling this one with
-        by the specified amount.
-
-        :param scalar: The (singular) amount to scale by.
-        :return: A scaled sparse vector.
-        """
-        return SparseVector(
-            np.multiply(self.data, scalar),
-            self.indices,
-            self.size
-        )
-
-    def slice(self, indices):
-        """
-        Slices this sparse vector using the specified indices.
-
-        Please note that this is not a typical slicing operation.  This
-        function returns a sparse vector with the following properties:
-            - it has the same size as the original vector, and
-            - its data and indices are direct slices of the original vector.
-        Thus, this operation may be considered a sub-vectorization with
-        post-conditions.
-
-        :param indices: The indices to slicy by.
-        :return: A sliced sparse vector.
-        """
-        return SparseVector(
-            self.data[indices], self.indices[indices], self.size
-        )
+        return SparseVector(np.power(self.data, a), self.indices, self.size)
 
     def sum(self):
         """
         Computes the sum of the data elements of this sparse vector.
 
-        :return: The sum.
+        :return: The sum of a sparse vector.
         """
         return np.sum(self.data)
+
+    def venn(self, other):
+        """
+        Computes both the set intersection and difference between this sparse
+        vector and the specified one.
+
+        :param other: A sparse vector to use.
+        :return: A tuple whose first element is the intersection and the
+        second the difference between two sparse vectors.
+        """
+        in_idx = np.in1d(self.indices, other.indices)
+        diff_idx = np.in1d(self.indices,
+                           np.setdiff1d(self.indices, self.indices[in_idx]))
+
+        return SparseVector(self.data[in_idx], self.indices[in_idx],
+                            self.size),\
+               SparseVector(self.data[diff_idx], self.indices[diff_idx],
+                            self.size)
 
     @staticmethod
     def from_list(dense_list):
