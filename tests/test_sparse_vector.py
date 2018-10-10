@@ -12,6 +12,48 @@ class SparseVectorTest(TestCase):
     Test suite for SparseVector.
     """
 
+    def test_add_with_random_vector(self):
+        array_a = np.array([1, 0, 2, 0, 3, 0, 4, 5])
+        array_b = np.array([2, 1, 0, 3, 4, 12, 0, 7])
+        a = SparseVector.from_list(array_a)
+        b = SparseVector.from_list(array_b)
+
+        expected = SparseVector.from_list([3, 0, 0, 0, 7, 0, 0, 12])
+        result = a + b
+
+        self.assertEqual(expected, result)
+
+    def test_add_with_random_scalar(self):
+        array = np.array([1, 0, 2, 0, 3, 0, 4, 5])
+        vec = SparseVector.from_list(array)
+        scalar = np.random.randint(1, 100)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.add(expected.data, scalar)
+        expected.compact()
+
+        result = vec + scalar
+
+        self.assertEqual(result, expected)
+
+    def test_add_with_zero_vector(self):
+        a = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        b = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+
+        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        result = a + b
+
+        self.assertEqual(expected, result)
+
+    def test_add_with_zero_scalar(self):
+        vec = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        scalar = 0
+
+        expected = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        result = vec + scalar
+
+        self.assertEqual(result, expected)
+
     def test_log2_with_random(self):
         array = np.random.randint(0, 20, 20)
         vec = SparseVector.from_list(array)
@@ -22,131 +64,96 @@ class SparseVectorTest(TestCase):
 
         self.assertEqual(result, expected)
 
-    def test_multiply_throws_if_vector_lengths_are_not_equal(self):
-        vec0 = SparseVector.from_list([1, 2, 3, 4])
-        vec1 = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
-        vec2 = SparseVector.from_list([1, 2, 2, 3, 3, 4, 4, 5])
-
-        with self.assertRaises(ValueError):
-            _, _ = vec0.multiply(vec1)
-            _, _ = vec0.multiply(vec2)
-            _, _ = vec1.multiply(vec2)
-
-    def test_multiply_with_equal_indices(self):
-        vec0 = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
-        vec1 = SparseVector.from_list([5, 0, 6, 0, 7, 0, 8])
-
-        expected0 = SparseVector.from_list([5, 0, 12, 0, 21, 0, 32])
-        expected1 = np.array([])
-        result, remainder = vec0.multiply(vec1)
-
-        self.assertEqual(result, expected0)
-        self.assertTrue(np.array_equal(remainder, expected1))
-
-    def test_multiply_with_identity(self):
-        vec = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
-        one = SparseVector.from_list([1, 1, 1, 1, 1, 1, 1])
-
-        expected0 = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
-        expected1 = np.array([])
-        result, remainder = vec.multiply(one)
-
-        self.assertEqual(result, expected0)
-        self.assertTrue(np.array_equal(remainder, expected1))
-
-    def test_multiply_with_unequal_indices(self):
-        vec0 = SparseVector.from_list([1, 3, 2, 0, 3, 5, 4])
-        vec1 = SparseVector.from_list([5, 0, 6, 4, 7, 0, 8])
-
-        expected0 = SparseVector.from_list([5, 0, 12, 0, 21, 0, 32])
-        expected1 = np.array([1, 5])
-        result, remainder = vec0.multiply(vec1)
-
-        self.assertEqual(result, expected0)
-        self.assertTrue(np.array_equal(remainder, expected1))
-
-    def test_multiply_with_unequal_indices_again(self):
-        vec0 = SparseVector.from_list([0, 1, 2, 0, 3, 0, 4])
-        vec1 = SparseVector.from_list([5, 3, 6, 4, 7, 5, 8])
-
-        expected0 = SparseVector.from_list([0, 3, 12, 0, 21, 0, 32])
-        expected1 = np.array([])
-        result, remainder = vec0.multiply(vec1)
-
-        self.assertEqual(result, expected0)
-        self.assertTrue(np.array_equal(remainder, expected1))
-
-    def test_multiply_with_zero(self):
-        vec = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4])
-        zero = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
-
-        expected0 = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
-        expected1 = np.array([0, 2, 4, 6])
-        result, remainder = vec.multiply(zero)
-
-        self.assertEqual(result, expected0)
-        self.assertTrue(np.array_equal(remainder, expected1))
-
-    def test_plus_with_random(self):
-        array = np.random.randint(0, 100, 30)
+    def test_log2_with_zero(self):
+        array = np.random.randint(0, 1, 20)
         vec = SparseVector.from_list(array)
-        scalar = np.random.randint(1, 32)
 
-        expected = SparseVector.from_list(np.add(array, scalar))
-        result = vec.plus(scalar)
+        expected = SparseVector.from_list(array)
+        expected.data = np.log2(expected.data)
+        result = vec.log2()
 
         self.assertEqual(result, expected)
 
-    def test_plus_with_zero(self):
-        vec = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+    def test_multiply_with_random_vector(self):
+        array_a = np.array([1, 0, 2, 0, 3, 0, 4, 5])
+        array_b = np.random.randint(0, 100, array_a.size)
+        a = SparseVector.from_list(array_a)
+        b = SparseVector.from_list(array_b)
 
-        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
-        result = vec.plus(30)
+        expected = SparseVector.from_list(np.multiply(array_a, array_b))
+        result = a * b
 
         self.assertEqual(expected, result)
 
-    def test_scale_with_random(self):
-        array = np.random.randint(0, 100, 20)
-
+    def test_multiply_with_random_scalar(self):
+        array = np.array([1, 0, 2, 0, 3, 0, 4, 5])
         vec = SparseVector.from_list(array)
-        scalar = np.random.randint(1, 32)
+        scalar = np.random.randint(1, 100)
 
         expected = SparseVector.from_list(np.multiply(array, scalar))
-        result = vec.scale(scalar)
+        result = vec * scalar
 
         self.assertEqual(result, expected)
 
-    def test_scale_with_zero(self):
-        vec = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+    def test_multiply_with_zero_vector(self):
+        a = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        b = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
 
         expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
-        result = vec.scale(2)
+        result = a * b
 
         self.assertEqual(expected, result)
 
-    def test_slice_with_full_vector(self):
-        vec = SparseVector.from_list([1, 2, 3, 4, 5, 6, 7])
+    def test_multiply_with_zero_scalar(self):
+        vec = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        scalar = 0
 
-        expected = SparseVector.from_list([1, 2, 3, 4, 5, 6, 7])
-        result = vec.slice([0, 1, 2, 3, 4, 5, 6])
-
-        self.assertEqual(result, expected)
-
-    def test_slice_with_sparse_vector(self):
-        vec = SparseVector.from_list([0, 1, 0, 2, 0, 3, 0])
-
-        expected = SparseVector.from_list([0, 0, 0, 2, 0, 3, 0])
-        result = vec.slice([1, 2])
+        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        result = vec * scalar
 
         self.assertEqual(result, expected)
 
-    def test_slice_with_zero(self):
-        vec = SparseVector.from_list([1, 2, 3, 4, 5, 6, 7])
+    def test_subtract_with_random_vector(self):
+        array_a = np.array([1, 0, 2, 0, 3, 0, 4, 5])
+        array_b = np.array([2, 1, 0, 3, 4, 12, 0, 7])
+        a = SparseVector.from_list(array_a)
+        b = SparseVector.from_list(array_b)
 
-        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
-        result = vec.slice([])
+        expected = SparseVector.from_list([-1, 0, 0, 0, -1, 0, 0, -2])
+        result = a - b
 
         self.assertEqual(expected, result)
+
+    def test_subtract_with_random_scalar(self):
+        array = np.array([1, 0, 2, 0, 3, 0, 4, 5])
+        vec = SparseVector.from_list(array)
+        scalar = np.random.randint(1, 100)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.subtract(expected.data, scalar)
+        expected.compact()
+
+        result = vec - scalar
+
+        self.assertEqual(result, expected)
+
+    def test_subtract_with_zero_vector(self):
+        a = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        b = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+
+        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        result = a - b
+
+        self.assertEqual(expected, result)
+
+    def test_subtract_with_zero_scalar(self):
+        vec = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        scalar = 0
+
+        expected = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        result = vec - scalar
+
+        self.assertEqual(result, expected)
 
     def test_sum_with_random(self):
         array = np.random.randint(0, 100, 20)
