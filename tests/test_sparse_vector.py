@@ -1,6 +1,8 @@
 """
 Contains unit tests to verify that sparse vector operations work as intended.
 """
+from copy import copy
+
 import numpy as np
 from unittest import TestCase
 
@@ -48,7 +50,8 @@ class SparseVectorTest(TestCase):
         scalar = np.random.randint(1, 100)
 
         expected = SparseVector.from_list(array)
-        expected.data = np.add(expected.data, scalar)
+        expected.data = np.add(expected.data,
+                               np.full(expected.data.size, scalar))
         expected.compact()
 
         result = vec + scalar
@@ -57,9 +60,9 @@ class SparseVectorTest(TestCase):
 
     def test_add_with_zero_vector(self):
         a = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
-        b = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        b = SparseVector.zero(8)
 
-        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        expected = SparseVector.zero(8)
         result = a + b
 
         self.assertEqual(expected, result)
@@ -72,6 +75,71 @@ class SparseVectorTest(TestCase):
         result = vec + scalar
 
         self.assertEqual(result, expected)
+
+    def test_compact_with_random(self):
+        data = np.random.randint(0, 10, 30, dtype=np.uint16)
+        indices = np.arange(30, dtype=np.uint32)
+
+        vec = SparseVector(data, indices, 30)
+        vec.compact()
+
+        zi = np.where(data == 0)
+        expected = SparseVector(np.delete(data, zi), np.delete(indices, zi), 30)
+        result = copy(vec)
+
+        self.assertEqual(result, expected)
+
+    def test_compact_with_zero(self):
+        vec = SparseVector(
+            np.zeros(10, dtype=np.uint16), np.arange(10, dtype=np.uint32), 10
+        )
+        vec.compact()
+
+        expected = SparseVector.zero(10)
+        result = copy(vec)
+
+        self.assertEqual(result, expected)
+
+    def test_divide_with_random_vector(self):
+        array_a = np.random.randint(0, 100, 30)
+        array_b = np.random.randint(0, 100, array_a.size)
+        a = SparseVector.from_list(array_a)
+        b = SparseVector.from_list(array_b)
+
+        a_idx = np.in1d(a.indices, b.indices)
+        b_idx = np.in1d(b.indices, a.indices)
+
+        expected = SparseVector.from_list(array_a)
+        expected.data = np.divide(a.data[a_idx], b.data[b_idx])
+        expected.indices = a.indices[a_idx]
+        expected.size = a.size
+        result = a / b
+
+        self.assertEqual(result, expected)
+
+    def test_divide_with_random_scalar(self):
+        array = np.array([1, 0, 2, 0, 3, 0, 4, 5])
+        vec = SparseVector.from_list(array)
+        scalar = np.random.randint(1, 100)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.divide(expected.data, scalar)
+        result = vec / scalar
+
+        self.assertEqual(result, expected)
+
+    def test_divide_with_zero_vector(self):
+        a = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
+        b = SparseVector.zero(8)
+
+        expected = SparseVector.zero(8)
+        result = a / b
+
+        self.assertEqual(expected, result)
+
+    def test_divide_with_zero_scalar_throws(self):
+        with self.assertRaises(ZeroDivisionError):
+            _ = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5]) / 0
 
     def test_exp_with_random(self):
         array = np.random.randint(0, 20, 20)
@@ -136,9 +204,9 @@ class SparseVectorTest(TestCase):
 
     def test_multiply_with_zero_vector(self):
         a = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
-        b = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        b = SparseVector.zero(8)
 
-        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+        expected = SparseVector.zero(8)
         result = a * b
 
         self.assertEqual(expected, result)
@@ -147,8 +215,26 @@ class SparseVectorTest(TestCase):
         vec = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
         scalar = 0
 
-        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        expected = SparseVector.zero(8)
         result = vec * scalar
+
+        self.assertEqual(result, expected)
+
+    def test_negate_with_random(self):
+        array = np.random.randint(0, 100, 20)
+        vec = SparseVector.from_list(array)
+
+        expected = SparseVector.from_list(array)
+        expected.data = np.negative(expected.data)
+        result = -vec
+
+        self.assertEqual(result, expected)
+
+    def test_negate_with_zero(self):
+        vec = SparseVector.zero(4)
+
+        expected = SparseVector.zero(4)
+        result = -vec
 
         self.assertEqual(result, expected)
 
@@ -191,7 +277,8 @@ class SparseVectorTest(TestCase):
         scalar = np.random.randint(1, 100)
 
         expected = SparseVector.from_list(array)
-        expected.data = np.subtract(expected.data, scalar)
+        expected.data = np.subtract(expected.data,
+                                    np.full(expected.data.size, scalar))
         expected.compact()
 
         result = vec - scalar
@@ -200,9 +287,9 @@ class SparseVectorTest(TestCase):
 
     def test_subtract_with_zero_vector(self):
         a = SparseVector.from_list([1, 0, 2, 0, 3, 0, 4, 5])
-        b = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        b = SparseVector.zero(8)
 
-        expected = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0])
+        expected = SparseVector.zero(8)
         result = a - b
 
         self.assertEqual(expected, result)
@@ -226,12 +313,46 @@ class SparseVectorTest(TestCase):
         self.assertEqual(result, expected)
 
     def test_sum_with_zero(self):
-        vec = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0])
+        vec = SparseVector.zero(7)
 
         expected = 0
         result = vec.sum()
 
         self.assertEqual(result, expected)
+
+    def test_venn_with_random(self):
+        array_a = np.random.randint(0, 100, 30)
+        array_b = np.random.randint(0, 100, 30)
+
+        a = SparseVector.from_list(array_a)
+        b = SparseVector.from_list(array_b)
+
+        a_i = np.in1d(a.indices, b.indices)
+        a_d = np.in1d(a.indices,
+                      np.setdiff1d(a.indices, a.indices[a_i]))
+
+        expected0 = SparseVector(a.data[a_i], a.indices[a_i], a.size)
+        expected1 = SparseVector(a.data[a_d], a.indices[a_d], a.size)
+
+        result0, result1 = a.venn(b)
+
+        self.assertEqual(result0, expected0)
+        self.assertEqual(result1, expected1)
+        self.assertEqual(result0.data.size + result1.data.size, a.data.size)
+        self.assertEqual(result0.indices.size + result1.indices.size,
+                         a.indices.size)
+
+    def test_venn_with_zero(self):
+        a = SparseVector.from_list([1, 0, 2, 0, 3, 4, 0, 5])
+        b = SparseVector.zero(8)
+
+        expected0 = SparseVector.zero(8)
+        expected1 = SparseVector.from_list([1, 0, 2, 0, 3, 4, 0, 5])
+
+        result0, result1 = a.venn(b)
+
+        self.assertEqual(result0, expected0)
+        self.assertEqual(result1, expected1)
 
     def test_from_list_with_no_unique_elements(self):
         vec = SparseVector.from_list([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])

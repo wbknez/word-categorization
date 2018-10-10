@@ -364,8 +364,8 @@ class SparseVector:
 
     def compact(self):
         """
-
-        :return:
+        Removes any and all zero elements and their associated indices from
+        this sparse vector.
         """
         zero_idx = np.where(self.data == 0)
         self.data = np.delete(self.data, zero_idx)

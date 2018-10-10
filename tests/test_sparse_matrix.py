@@ -104,4 +104,3 @@ class SparseMatrixTest(TestCase):
         self.assertTrue(np.array_equal(mat.cols, np.array([1, 3, 0, 2])))
         self.assertTrue(np.array_equal(mat.data, np.array([1, 2, 4, 3])))
         self.assertTrue(np.array_equal(mat.rows, np.array([0, 1, 2, 3])))
-
