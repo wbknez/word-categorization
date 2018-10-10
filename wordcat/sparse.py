@@ -54,14 +54,22 @@ class SparseMatrix:
         return NotImplemented
 
     def __getattr__(self, item):
-        if item == "dtype":
+        if item == "col_count":
+            return self.shape[1]
+        elif item == "dtype":
             return self.data.dtype
+        elif item == "row_count":
+            return self.shape[0]
 
     def __getitem__(self, item):
         return self.data[item], (self.rows[item], self.cols[item])
 
     def __getstate__(self):
         return self.__dict__.copy()
+
+    def __iter__(self):
+        for i in range(self.data.size):
+            return self.data[i], (self.rows[i], self.cols[i])
 
     def __len__(self):
         """
@@ -165,6 +173,20 @@ class SparseMatrix:
         return SparseMatrix(np.array(data), np.array(rows, np.int),
                             np.array(cols, np.int),
                             (len(dense_matrix), len(dense_matrix[0])))
+
+    @staticmethod
+    def zero(shape, dtype=np.uint16):
+        """
+        Creates a zero-element sparse matrix with the specified shape and
+        whose data array supports the specified type.
+
+        :param shape: The dimensions to use.
+        :param dtype: The element data type to use.
+        :return: A sized zero-element sparse matrix.
+        """
+        return SparseMatrix(np.array([], dtype=dtype),
+                            np.array([], dtype=np.uint32),
+                            np.array([], dtype=np.uint32), shape)
 
 
 class SparseVector:
