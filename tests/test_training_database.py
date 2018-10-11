@@ -18,33 +18,26 @@ class DatabaseTest(TestCase):
 
     def test_class_frequencies_with_single_class(self):
         tdb = TrainingDatabase(np.full(1200, 3, dtype=np.uint8),
-                               SparseMatrix(np.array([], dtype=np.uint16),
-                                            np.array([], dtype=np.uint32),
-                                            np.array([], dtype=np.uint32),
-                                            (1200, 100)))
-        clszs, freqs = tdb.get_class_frequencies()
+                               SparseMatrix.zero((1200, 100)))
 
-        self.assertEqual(clszs.size, 1)
-        self.assertEqual(freqs.size, 1)
-        self.assertEqual(clszs[0], 3)
-        self.assertEqual(freqs[0], 1.0)
+        expected = {3: 1.0}
+        result = tdb.create_class_frequency_table()
+
+        self.assertEqual(result, expected)
 
     def test_class_frequencies_with_multiple_classes(self):
         tdb = TrainingDatabase(np.random.randint(1, 8, 1200, dtype=np.uint8),
-                               SparseMatrix(np.array([], dtype=np.uint16),
-                                            np.array([], dtype=np.uint32),
-                                            np.array([], dtype=np.uint32),
-                                            (1200, 100)))
-        clszs, freqs = tdb.get_class_frequencies()
-        uniques, counts = np.unique(tdb.classes, return_counts=True)
+                               SparseMatrix.zero((1200, 100)))
+        class_counts, frequencies = np.unique(tdb.classes, return_counts=True)
 
-        self.assertEqual(clszs.size, uniques.size)
-        self.assertEqual(freqs.size, counts.size)
-        self.assertTrue(np.array_equal(clszs, uniques))
-        self.assertTrue(np.array_equal(freqs,
-                                       np.divide(counts, tdb.classes.size)))
+        expected = {
+            cls: (freq / 1200) for cls, freq in zip(class_counts, frequencies)
+        }
+        result = tdb.create_class_frequency_table()
 
-    def test_select_using_multiple_classes(self):
+        self.assertTrue(result, expected)
+
+    def test_select_with_multiple_classes(self):
         classes = np.array([1, 1, 2, 2, 3, 3, 2, 1, 3, 1], dtype=np.uint8)
         vectors = [SparseVector.random(0, 5, 10) for _ in range(10)]
 
@@ -60,8 +53,8 @@ class DatabaseTest(TestCase):
         for exp, res in zip(expected, result):
             self.assertEqual(res, exp)
 
-    def test_select_using_single_class(self):
-        tdb = TrainingDatabase(np.random.randint(1, 2, 10, dtype=np.uint8),
+    def test_select_with_single_class(self):
+        tdb = TrainingDatabase(np.full(10, 1, dtype=np.uint8),
                                SparseMatrix.random(0, 5, (10, 3)))
 
         expected = copy(tdb.counts)

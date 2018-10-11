@@ -138,10 +138,10 @@ class TrainingDatabase:
     def __setstate__(self, state):
         self.__dict__.update(state)
 
-    def get_class_frequencies(self):
+    def create_class_frequency_table(self):
         """
         Computes and returns the frequencies of all unique classes in this
-        training database.
+        training database associated by identifier.
 
         The returned value is actually a tuple of two items:
           1. An array of all unique classes found in this training database, and
@@ -153,13 +153,14 @@ class TrainingDatabase:
         Please note that this function does not ensure a full list.  Put
         another way, any classes that are not found (because there are no
         examples for them) are not included in the frequency computation and
-        are also not included in the returned class (id) list.
+        are also not included in the returned class (id) mapping.
 
-        :return: A tuple consisting of one array of unique classes and
-        another of their frequencies.
+        :return: A mapping of class frequencies by identifier.
         """
-        class_counts = np.unique(self.classes, return_counts=True)
-        return class_counts[0], np.divide(class_counts[1], len(self.classes))
+        class_counts, frequencies = np.unique(self.classes, return_counts=True)
+        frequencies = np.divide(frequencies, len(self.classes))
+
+        return {cls: freq for cls, freq in zip(class_counts, frequencies)}
 
     def select(self, classz):
         """
