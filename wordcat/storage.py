@@ -4,6 +4,8 @@ algorithm to use and operate upon.
 """
 import numpy as np
 
+from wordcat.sparse import SparseMatrix
+
 
 class ClassLabels:
     """
@@ -158,6 +160,33 @@ class TrainingDatabase:
         """
         class_counts = np.unique(self.classes, return_counts=True)
         return class_counts[0], np.divide(class_counts[1], len(self.classes))
+
+    def select(self, classz):
+        """
+        Computes the sub-matrix that represents all training examples whose
+        classification is the specified class.
+
+        :param classz: The class to select.
+        :return: A sparse matrix of data specific to a class.
+        """
+        indices = np.where(self.classes == classz)[0]
+        return SparseMatrix.vstack([self.counts.get_row(i) for i in indices])
+
+    def shuffle(self):
+        """
+
+        """
+        items = [
+            self.classes,
+            self.counts.cols,
+            self.counts.data,
+            self.counts.rows,
+        ]
+        state = np.random.get_state()
+
+        for item in items:
+            np.random.set_state(state)
+            np.random.shuffle(item)
 
 
 class Vocabulary:

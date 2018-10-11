@@ -175,6 +175,35 @@ class SparseMatrix:
                             (len(dense_matrix), len(dense_matrix[0])))
 
     @staticmethod
+    def random(low, high, shape, dtype=None):
+        """
+
+        :param low:
+        :param high:
+        :param shape:
+        :param dtype:
+        :return:
+        """
+        if not dtype:
+            dtype = np.uint16
+
+        cols = []
+        data = []
+        rows = []
+
+        for row_index in range(shape[0]):
+            for col_index in range(shape[0]):
+                val = np.random.randint(low, high, dtype=dtype)
+
+                if val != 0:
+                    cols.append(col_index)
+                    data.append(val)
+                    rows.append(row_index)
+
+        return SparseMatrix(np.array(data, dtype), np.array(rows, np.uint32),
+                            np.array(cols, np.uint32), shape)
+
+    @staticmethod
     def vstack(vectors, dtype=None):
         """
         Creates a new sparse matrix by stacking the specified collection of
