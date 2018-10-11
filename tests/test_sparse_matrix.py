@@ -105,3 +105,21 @@ class SparseMatrixTest(TestCase):
         self.assertTrue(np.array_equal(mat.cols, np.array([1, 3, 0, 2])))
         self.assertTrue(np.array_equal(mat.data, np.array([1, 2, 4, 3])))
         self.assertTrue(np.array_equal(mat.rows, np.array([0, 1, 2, 3])))
+
+    def test_vstack_with_multiple_vectors(self):
+        arrays = [np.random.randint(0, 10, 30) for _ in range(20)]
+        vectors = [SparseVector.from_list(arrays[i]) for i in range(20)]
+
+        expected = SparseMatrix.from_list(arrays)
+        result = SparseMatrix.vstack(vectors)
+
+        self.assertEqual(result, expected)
+
+    def test_vstack_with_single_vector(self):
+        expected = SparseMatrix.from_list([[1, 0, 2, 0, 3, 4, 0, 5]])
+        result = SparseMatrix.vstack([
+            SparseVector.from_list([1, 0, 2, 0, 3, 4, 0, 5])
+        ])
+
+        self.assertEqual(result.shape, (1, 8))
+        self.assertEqual(result, expected)

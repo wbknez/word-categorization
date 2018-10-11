@@ -170,9 +170,44 @@ class SparseMatrix:
                     data.append(col)
                     rows.append(row_index)
 
-        return SparseMatrix(np.array(data), np.array(rows, np.int),
-                            np.array(cols, np.int),
+        return SparseMatrix(np.array(data), np.array(rows, np.uint32),
+                            np.array(cols, np.uint32),
                             (len(dense_matrix), len(dense_matrix[0])))
+
+    @staticmethod
+    def vstack(vectors, dtype=None):
+        """
+        Creates a new sparse matrix by stacking the specified collection of
+        vectors vertically.
+
+        The resulting matrix has the dimensions of the number of vectors as
+        the rows and the size of the first vector as the column count.  This
+        function essentially treats the collection of vectors as one of rows,
+        "stacking" each row upon the last by appending their data and indice
+        data one after another.
+
+        :param vectors: The collection of vectors to use as rows.
+        :return: A condensed sparse matrix.
+        """
+        if not vectors:
+            raise ValueError("Must have at least one vector to create a "
+                             "matrix.  Use zero() instead.")
+
+        cols = []
+        data = []
+        rows = []
+
+        if not dtype:
+            dtype = vectors[0].dtype
+
+        for index, vector in enumerate(vectors):
+            cols.extend(vector.indices)
+            data.extend(vector.data)
+            rows.extend([index] * vector.data.size)
+
+        return SparseMatrix(np.array(data, dtype), np.array(rows, np.uint32),
+                            np.array(cols, np.uint32),
+                            (len(vectors), vectors[0].size))
 
     @staticmethod
     def zero(shape, dtype=np.uint16):
