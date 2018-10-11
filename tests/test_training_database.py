@@ -46,10 +46,7 @@ class DatabaseTest(TestCase):
 
     def test_select_using_multiple_classes(self):
         classes = np.array([1, 1, 2, 2, 3, 3, 2, 1, 3, 1], dtype=np.uint8)
-        vectors = [
-            SparseVector.from_list(np.random.randint(0, 5, 10)) \
-            for _ in range(10)
-        ]
+        vectors = [SparseVector.random(0, 5, 10) for _ in range(10)]
 
         tdb = TrainingDatabase(classes, SparseMatrix.vstack(vectors))
 

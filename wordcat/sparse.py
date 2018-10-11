@@ -177,12 +177,14 @@ class SparseMatrix:
     @staticmethod
     def random(low, high, shape, dtype=None):
         """
+        Create a random sparse matrix with the sepcified low and high bounds
+        and with the specified shape and element data type.
 
-        :param low:
-        :param high:
-        :param shape:
-        :param dtype:
-        :return:
+        :param low: The lower bound to use, inclusive.
+        :param high: The upper bound to use, exclusive.
+        :param shape: The shape of the matrix to create.
+        :param dtype: The element data type to use.
+        :return: A sparse matrix with random elements.
         """
         if not dtype:
             dtype = np.uint16
@@ -551,6 +553,35 @@ class SparseVector:
             np.array(indices, copy=False, dtype=np.uint32),
             size
         )
+
+    @staticmethod
+    def random(low, high, size, dtype=None):
+        """
+        Create a random sparse vector with the sepcified low and high bounds
+        and with the specified size and element data type.
+
+        :param low: The lower bound to use, inclusive.
+        :param high: The upper bound to use, exclusive.
+        :param size: The size of the vector to create.
+        :param dtype: The element data type to use.
+        :return: A sparse vector with random elements.
+        """
+        if not dtype:
+            dtype = np.uint16
+
+        data = []
+        indices = []
+
+        for i in range(size):
+            val = np.random.randint(low, high)
+
+            if val != 0:
+                data.append(val)
+                indices.append(i)
+
+        return SparseVector(np.array(data, copy=False, dtype=dtype),
+                            np.array(indices, copy=False, dtype=np.uint32),
+                            size)
 
     @staticmethod
     def zero(size, dtype=np.uint16):
