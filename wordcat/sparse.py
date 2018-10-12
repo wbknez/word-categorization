@@ -148,7 +148,7 @@ class SparseMatrix:
         return np.sum(self.data)
 
     @staticmethod
-    def from_list(dense_matrix):
+    def from_list(dense_matrix, dtype=None):
         """
         Creates a sparse matrix from the specified nested (two-dimensional)
         list of elements.
@@ -156,8 +156,11 @@ class SparseMatrix:
         The list of lists denotes a matrix in row-major order.
 
         :param dense_matrix: The list of elements to use.
+        :param dtype: The data element type to use.
         :return: A new sparse matrix.
         """
+        if not dtype:
+            dtype = np.uint16
 
         cols = []
         data = []
@@ -170,8 +173,9 @@ class SparseMatrix:
                     data.append(col)
                     rows.append(row_index)
 
-        return SparseMatrix(np.array(data), np.array(rows, np.uint32),
-                            np.array(cols, np.uint32),
+        return SparseMatrix(np.array(data, copy=False, dtype=dtype),
+                            np.array(rows, copy=False, dtype=np.uint32),
+                            np.array(cols, copy=False, dtype=np.uint32),
                             (len(dense_matrix), len(dense_matrix[0])))
 
     @staticmethod
@@ -202,8 +206,9 @@ class SparseMatrix:
                     data.append(val)
                     rows.append(row_index)
 
-        return SparseMatrix(np.array(data, dtype), np.array(rows, np.uint32),
-                            np.array(cols, np.uint32), shape)
+        return SparseMatrix(np.array(data, copy=False, dtype=dtype),
+                            np.array(rows, copy=False, dtype=np.uint32),
+                            np.array(cols, copy=False, dtype=np.uint32), shape)
 
     @staticmethod
     def vstack(vectors, dtype=None):
@@ -218,6 +223,7 @@ class SparseMatrix:
         data one after another.
 
         :param vectors: The collection of vectors to use as rows.
+        :param dtype: The data element type to use.
         :return: A condensed sparse matrix.
         """
         if not vectors:
@@ -236,8 +242,9 @@ class SparseMatrix:
             data.extend(vector.data)
             rows.extend([index] * vector.data.size)
 
-        return SparseMatrix(np.array(data, dtype), np.array(rows, np.uint32),
-                            np.array(cols, np.uint32),
+        return SparseMatrix(np.array(data, copy=False, dtype=dtype),
+                            np.array(rows, copy=False, dtype=np.uint32),
+                            np.array(cols, copy=False, dtype=np.uint32),
                             (len(vectors), vectors[0].size))
 
     @staticmethod
@@ -518,13 +525,17 @@ class SparseVector:
                             self.size)
 
     @staticmethod
-    def from_list(dense_list):
+    def from_list(dense_list, dtype=None):
         """
         Creates a sparse vector from the specified list of elements.
 
         :param dense_list: The list of elements to use.
+        :param dtype: The data element type to use.
         :return: A new sparse vector.
         """
+        if not dtype:
+            dtype = np.uint16
+
         data = []
         indices = []
 
@@ -533,7 +544,7 @@ class SparseVector:
                 data.append(element)
                 indices.append(index)
 
-        return SparseVector(np.array(data, copy=False, dtype=np.uint16),
+        return SparseVector(np.array(data, copy=False, dtype=dtype),
                             np.array(indices, copy=False, dtype=np.uint32),
                             size=len(dense_list))
 
@@ -546,6 +557,7 @@ class SparseVector:
         :param data: The list of elements to use.
         :param indices: The list of indices to use.
         :param size: The total size to use.
+        :param dtype: The data element type to use.
         :return: A new sparse vector.
         """
         return SparseVector(
