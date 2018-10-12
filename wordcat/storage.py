@@ -2,6 +2,8 @@
 Contains all classes and functions related to storing data for a learning
 algorithm to use and operate upon.
 """
+from collections import namedtuple
+
 import numpy as np
 
 from wordcat.sparse import SparseMatrix
@@ -45,6 +47,15 @@ class ClassLabels:
         self.__dict__.update(state)
 
 
+class Test(namedtuple("Test", ["id", "query"])):
+    """
+    Represents a single test query with associated id with which a learning
+    algorithm may use to make a prediction.
+    """
+
+    pass
+
+
 class TestingSet:
     """
     Represents a collection of test data.
@@ -61,17 +72,25 @@ class TestingSet:
                              "of tests: {} not {}.".format(len(ids),
                                                            len(tests)))
 
-        self.ids = ids
-        self.tests = tests
+        self.tests = [Test(id, test) for id, test in zip(ids, tests)]
 
     def __eq__(self, other):
         if isinstance(other, TestingSet):
-            return self.ids == other.ids and self.tests == other.tests
+            return self.tests == other.tests
         return NotImplemented
 
+    def __getitem__(self, item):
+        return self.tests[item]
+
     def __iter__(self):
-        for id, test in zip(self.ids, self.tests):
-            yield id, test
+        for test in self.tests:
+            yield test
+
+    def __hash__(self):
+        return hash(self.tests)
+
+    def __len__(self):
+        return len(self.tests)
 
     def __ne__(self, other):
         return not self == other

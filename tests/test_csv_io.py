@@ -68,8 +68,8 @@ class CsvIOTest(TestCase):
             )
 
             for i in range(3):
-                expected.tests[i].indices = expected.tests[i].indices + 1
-                expected.tests[i].size = expected.tests[i].size + 1
+                expected[i].query.indices = expected[i].query.indices + 1
+                expected[i].query.size = expected[i].query.size + 1
 
             result = CsvIO.read_set(pool, stream)
 
@@ -82,8 +82,8 @@ class CsvIOTest(TestCase):
             expected = TestingSet(
                 [0], [SparseVector.from_list([0, 1, 0, 2, 0, 3, 4, 0, 5])]
             )
-            expected.tests[0].indices = expected.tests[0].indices + 1
-            expected.tests[0].size = expected.tests[0].size + 1
+            expected[0].query.indices = expected[0].query.indices + 1
+            expected[0].query.size = expected[0].query.size + 1
 
             result = CsvIO.read_set(pool, stream)
 

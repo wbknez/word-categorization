@@ -138,9 +138,15 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
     def predict(self, test, dbgc):
         scores = {}
 
+        dbgc.info("Working on test: {}".format(test.id))
+
         for classz, prior in self.priors.items():
+            dbgc.info("Computing P(Ynew) for class: {} for test: {}".format(
+                classz, test.id
+            ))
+
             no_words, words = self.maps[classz]
-            intersect, diff = test.venn(words)
+            intersect, diff = test.query.venn(words)
 
             scores[classz] =\
                 prior + (intersect * words).sum() + (diff * no_words).sum()
