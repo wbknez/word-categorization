@@ -116,6 +116,7 @@ class TrainingDatabase:
         if isinstance(other, TrainingDatabase):
             return np.array_equal(self.classes, other.classes) and \
                    self.counts == other.counts
+        return NotImplemented
 
     def __getattr__(self, item):
         if item == "cols":
