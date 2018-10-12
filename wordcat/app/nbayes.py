@@ -85,7 +85,7 @@ def test(learner, pool, args, dbgc):
     dbgc.success("Configuration complete.")
 
     dbgc.info("Beginning to train...")
-    learner.train(tdb, pool, dbgc)
+    learner.train(pool, tdb, args, dbgc)
     dbgc.success("Training complete.")
 
     dbgc.info("Beginning to test...")
@@ -141,7 +141,7 @@ def main():
             labels = PickleIO.read_labels(labels_stream)
             vocab = PickleIO.read_vocabulary(vocab_stream)
 
-        learner = NaiveBayesLearningAlgorithm(labels, vocab, args.beta)
+        learner = NaiveBayesLearningAlgorithm(labels, vocab)
 
         if args.subparsers == "test":
             test(learner, pool, args, dbgc)

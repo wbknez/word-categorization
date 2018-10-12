@@ -3,12 +3,11 @@ Contains all classes and functions related to implementing the ore portion of
 this project - the actual machine learning algorithms themselves.
 """
 from functools import partial
-from itertools import chain
 
 import numpy as np
 from abc import ABCMeta, abstractmethod
 
-from wordcat.sparse import SparseMatrix, SparseVector
+from wordcat.sparse import SparseVector
 
 
 class LearningAlgorithm(metaclass=ABCMeta):
@@ -46,19 +45,6 @@ class LearningAlgorithm(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
-    def reset(self, dbgc):
-        """
-        Resets this learning algorithm to a clean, stable state that will
-        allow it to be reused.
-
-        More formally, the post-condition of this function is that this
-        learning algorithm is ready for train() to be called without error.
-
-        :param dbgc: The debug console to use.
-        """
-        pass
-
     def test(self, ts, pool, dbgc):
         """
         Computes predictions for any and all tests in the specified testing
@@ -74,14 +60,15 @@ class LearningAlgorithm(metaclass=ABCMeta):
         return ts.ids, results
 
     @abstractmethod
-    def train(self, tdb, pool, dbgc):
+    def train(self, pool, tdb, params, dbgc):
         """
         Trains this learning algorithm with any and all examples in the
         specified training database and uses the specified processing pool to
         improve performance.
 
-        :param tdb: The training database to use.
         :param pool: The processing pool to use.
+        :param tdb: The training database to use.
+        :param params: The user-chosen parameters to use.
         :param dbgc: The debug console to use.
         """
         pass
@@ -105,140 +92,86 @@ class LearningAlgorithm(metaclass=ABCMeta):
 class NaiveBayesLearningAlgorithm(LearningAlgorithm):
     """
 
+    Attributes:
+        maps (dict): The mapping of maximum apriori estimates by class.
+        priors (list): The list of prior probabilitys per class.
     """
 
-    def __init__(self, labels, vocab, beta):
+    def __init__(self, labels, vocab):
         super().__init__(labels, vocab)
 
-        self.alpha = 1 + beta
-        self.priors = np.full(labels.count + 1, 0.0, dtype=np.float)
-        self.probs = {}
+        self.maps = {}
+        self.priors = {}
 
-    def compute_map_for_class(self, counts, alpha, V):
-        denominator = counts.data[0] + ((alpha - 1) * V)
-        counts.data[0] = 0.0
-
-        return SparseVector(np.log2(np.divide(np.add(counts.data, alpha - 1),
-                                              denominator)),
-                            counts.indices, counts.size)
-
-    def compute_map_estimates(self, pool, word_counts):
+    def count_words(self, mat):
         """
 
-        :param pool:
-        :param word_counts:
+        :param mat:
         :return:
         """
-        estimator = partial(self.compute_map_for_class, alpha=self.alpha,
-                            V=self.vocab.count)
-        results = pool.map(estimator, word_counts)
-        return {key: value for key, value in enumerate(results, 1)}
+        return mat.sum(), SparseVector.from_list(
+            [column.sum() for column in mat.get_columns()], np.uint32
+        )
 
-    def compute_priors(self, tdb):
-        """
-        Computes the prior probabilities for each individual document class
-        relative to the others.
-
-        Priors are converted into logarithmic form in preparation for training.
-
-        :param tdb: The training database to use.
-        """
-        classes, frequencies = tdb.get_class_frequencies()
-        self.priors[classes] = np.log2(frequencies)
-
-    def compute_sub_matrix_for_class(self, classz, tdb):
+    def find_max(self, scores):
         """
 
-        :param classz:
-        :param tdb:
+        :param scores:
         :return:
         """
-        class_indices = np.where(tdb.classes == classz)[0]
-        row_indices = [np.where(tdb.counts.rows == c)[0] for c in class_indices]
+        max_score = max(scores.values())
+        max_keys = [
+            key for key in sorted(scores.keys()) if scores[key] == max_score
+        ]
 
-        sub_indices = np.array(list(chain(*row_indices)), copy=False,
-                               dtype=np.uint32)
-        return SparseMatrix(tdb.counts.data[sub_indices],
-                            tdb.counts.rows[sub_indices],
-                            tdb.counts.cols[sub_indices],
-                            tdb.counts.shape)
+        if len(max_keys) == 1:
+            return max_keys[0]
+        return max_keys[[self.priors[key] for key in max_keys].index(max_score)]
 
-    def compute_sub_matrices(self, pool, tdb):
-        """
-
-        :return:
-        """
-        indexer = partial(self.compute_sub_matrix_for_class, tdb=tdb)
-        return pool.map(indexer, [i for i in range(1, 21)])
-
-    def compute_word_counts_for_class(self, submat):
-        """
-
-        :param submat:
-        :return:
-        """
-        counts = [np.sum(submat.data)]
-        indices = [0]
-
-        for i in range(1, submat.shape[1]):
-            col_indices = np.where(submat.cols == i)[0]
-            count = np.sum(submat.data[col_indices])
-
-            if count != 0:
-                counts.append(count)
-                indices.append(i)
-        return SparseVector(np.array(counts, copy=False,
-                                     dtype=np.uint16),
-                            np.array(indices, copy=False,
-                                     dtype=np.uint32),
-                            submat.shape[1])
-
-    def compute_word_counts(self, pool, submats):
-        """
-
-        :param pool:
-        :param submats:
-        :param tdb:
-        """
-        return pool.map(self.compute_word_counts_for_class, submats)
+    def make_map(self, counts, alpha, V):
+        denom = 1.0 / (counts[0] + ((alpha - 1) * V))
+        return (
+            np.log2((alpha - 1) * denom),
+            ((counts[1] + (alpha - 1)) * denom).log2()
+        )
 
     def predict(self, test, dbgc):
-        max_index = 1
-        max_score = -1e15
+        scores = {}
 
-        for index, _ in self.labels:
-            counts = self.probs[index]
-            product, remainder = test.multiply(counts)
+        for classz, prior in self.priors.items():
+            no_words, words = self.maps[classz]
+            intersect, diff = test.venn(words)
 
-            score = self.priors[index] + (counts.data[0] * remainder) +\
-                    np.sum(product.data)
+            scores[classz] =\
+                prior + (intersect * words).sum() + (diff * no_words).sum()
+        return self.find_max(scores)
 
-            if score > max_score:
-                max_index = index
-                max_score = score
-        return max_index
+    def train(self, pool, tdb, params, dbgc):
+        dbgc.info("Calculating priors P(Yk) for all classes.")
+        self.priors = {
+            k: np.log2(v) for k, v in tdb.create_class_frequency_table().items()
+        }
 
-    def reset(self, dbgc):
-        self.priors.fill(0.0)
-        self.probs.clear()
+        dbgc.info("Creating sub-matrices for indexing.")
+        submats = pool.map(
+            tdb.select, [classz for classz in sorted(self.priors.keys())]
+        )
 
-    def train(self, tdb, pool, dbgc):
-        # Training consists of the following steps:
-        #   1) Compute priors.
-        #   2) Compute sub-matrices for indexing.
-        #   4) Compute word count matrix using sparse vectors.
-        dbgc.info("Computing priors P(Yk) for all classes.")
-        self.compute_priors(tdb)
-
-        dbgc.info("Computing sub-matrices for indexing.")
-        submats = self.compute_sub_matrices(pool, tdb)
-
-        dbgc.info("Computing word count matrices (# of Xi in Yk).")
-        word_counts = self.compute_word_counts(pool, submats)
+        dbgc.info("Counting words in sub-matrices (# of Xi in Yk).")
+        word_counts = pool.map(self.count_words, submats)
 
         dbgc.info("Computing MAP table P(Xi|Yk) using alpha of {:.2f}.",
-                  self.alpha)
-        self.probs = self.compute_map_estimates(pool, word_counts)
+                  1 + params.beta)
+        y_k, x_k = zip(*pool.map(
+            partial(self.make_map, alpha=1 + params.beta, V=self.vocab.count),
+            word_counts
+        ))
+
+        dbgc.info("Compressing MAP table into learner cache.")
+        self.maps = {
+            cls: [y_k[idx], x_k[idx]] \
+                for idx, cls in enumerate(sorted(self.priors.keys()))
+        }
 
     def validate(self, vds, pool, dbgc):
         pass
