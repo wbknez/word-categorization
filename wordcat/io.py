@@ -21,7 +21,7 @@ class CsvIO:
     separated values, or CSV, files.
     """
 
-    class Line(namedtuple("Line", ["row", "cols", "data"])):
+    class Line(namedtuple("Line", ["classz", "cols", "data", "id"])):
         """
         Represents a single, sparse row of CSV data from an external source.
         """
@@ -37,14 +37,14 @@ class CsvIO:
 
         :param stream: The CSV stream to use.
         :param delimiter: The character that separates values in the stream.
-        :return: A generator over each row index and parsed line.
+        :return: A generator over each parsed line.
         """
         reader = csv.reader(stream, delimiter=delimiter)
-        for row, line in enumerate(reader):
-            yield row, line
+        for line in reader:
+            yield line
 
     @staticmethod
-    def process_line(line, row, skip_class):
+    def process_line(line, skip_class, skip_id):
         """
         Processes the specified line of CSV data from the specified row index
         into a sparse list.
@@ -58,13 +58,16 @@ class CsvIO:
         parallel to improve file parsing performance.
 
         :param line: The line of CSV data to parse.
-        :param row: The row index to use.
         :param skip_class: Whether or not the last element of a line is
-        included.
+        a classification marker and should be ignored.
+        :param skip_id: Whether or not the first element of a line is a
+        unique identifier and should be ignored.
         :return: A sparse representation of a line of CSV data.
         """
+        classz = None if skip_class else int(line[-1])
         cols = []
         data = []
+        id = None if skip_id else int(line[0])
         last_index = len(line) - (1 if not skip_class else 0)
 
         for i in range(1, last_index):
@@ -72,7 +75,7 @@ class CsvIO:
                 cols.append(i)
                 data.append(int(line[i]))
 
-        return CsvIO.Line(row, cols, data)
+        return CsvIO.Line(classz, cols, data, id)
 
     @staticmethod
     def read_database(pool, stream):
@@ -89,24 +92,14 @@ class CsvIO:
         data = []
         rows = []
 
-        procs = []
-        results = []
+        processor = partial(CsvIO.process_line, skip_class=False, skip_id=True)
+        results = pool.map(processor, CsvIO.generate_lines(stream))
 
-        for row, line in CsvIO.generate_lines(stream):
-            classes.append(int(line[-1]))
-
-            processor = partial(CsvIO.process_line, row=row, skip_class=False)
-            procs.append(pool.map_async(processor, (line, )))
-        for proc in procs:
-            results.append(proc.get()[0])
-
-        # Sort by row.
-        results.sort(key=lambda r: r[0])
-
-        for result in results:
-            cols.extend(result[1])
-            data.extend(result[2])
-            rows.extend([result[0]] * len(result[1]))
+        for index, result in enumerate(results):
+            classes.append(result.classz)
+            cols.extend(result.cols)
+            data.extend(result.data)
+            rows.extend([index] * len(result.cols))
 
         return TrainingDatabase(
             np.array(classes, copy=False, dtype=np.uint8),
@@ -127,7 +120,7 @@ class CsvIO:
         """
         classes = {}
 
-        for _, line in CsvIO.generate_lines(stream, delimiter=" "):
+        for line in CsvIO.generate_lines(stream, delimiter=" "):
             classes[int(line[0])] = line[1]
         return ClassLabels(classes)
 
@@ -144,24 +137,14 @@ class CsvIO:
         ids = []
         tests = []
 
-        procs = []
-        results = []
-
-        for row, line in CsvIO.generate_lines(stream):
-            ids.append(int(line[0]))
-
-            processor = partial(CsvIO.process_line, row=row, skip_class=True)
-            procs.append(pool.map_async(processor, (line, )))
-        for proc in procs:
-            results.append(proc.get()[0])
-
-        # Sort by row (which is also id).
-        results.sort(key=lambda t: t[0])
+        processor = partial(CsvIO.process_line, skip_class=True, skip_id=False)
+        results = pool.map(processor, CsvIO.generate_lines(stream))
 
         for result in results:
-            tests.append(SparseVector(data=np.array(result[2], copy=False,
+            ids.append(result.id)
+            tests.append(SparseVector(data=np.array(result.data, copy=False,
                                                dtype=np.uint16),
-                                      indices=np.array(result[1], copy=False,
+                                      indices=np.array(result.cols, copy=False,
                                                dtype=np.uint32),
                                       size=61189))
 
@@ -178,7 +161,7 @@ class CsvIO:
         """
         words = []
 
-        for _, line in CsvIO.generate_lines(stream):
+        for line in CsvIO.generate_lines(stream):
             words.append(line)
         return Vocabulary(words)
 
