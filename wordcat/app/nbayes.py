@@ -89,13 +89,13 @@ def test(learner, pool, args, dbgc):
     dbgc.success("Training complete.")
 
     dbgc.info("Beginning to test...")
-    ids, classes = learner.test(ts, pool, dbgc)
+    predictions = learner.test(pool, ts, dbgc)
     dbgc.success("Testing complete.")
 
     dbgc.info("Outputting predictions...")
     dbgc.info("Writing results to: {}.", args.output)
     with open(args.output, "w+") as stream:
-        CsvIO.write_predictions(stream, ["id", "class"], ids, classes)
+        CsvIO.write_predictions(stream, ["id", "class"], predictions)
     dbgc.success("Finished writing results.")
 
 

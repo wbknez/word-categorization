@@ -7,6 +7,7 @@ from functools import partial
 import numpy as np
 from abc import ABCMeta, abstractmethod
 
+from storage import Prediction
 from wordcat.sparse import SparseVector
 
 
@@ -45,19 +46,18 @@ class LearningAlgorithm(metaclass=ABCMeta):
         """
         pass
 
-    def test(self, ts, pool, dbgc):
+    def test(self, pool, ts, dbgc):
         """
         Computes predictions for any and all tests in the specified testing
         set, using the specified processing pool to improve performance.
 
-        :param ts: The testing set to evaluate.
         :param pool: The processing pool to use.
+        :param ts: The testing set to evaluate.
         :param dbgc: The debug console to use.
-        :return: A collection of results ordered by test id.
+        :return: A collection of predictions ordered by test id.
         """
         predictor = partial(self.predict, dbgc=dbgc)
-        results = pool.map(predictor, ts.tests)
-        return ts.ids, results
+        return pool.map(predictor, ts.tests)
 
     @abstractmethod
     def train(self, pool, tdb, params, dbgc):
@@ -169,7 +169,9 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
 
             scores[classz] =\
                 prior + (intersect * words).sum() + (diff * no_words).sum()
-        return self.find_max(scores)
+
+        dbgc.info("Scores for test: {} are: {}.".format(test.id, scores))
+        return Prediction(test.id, self.find_max(scores))
 
     def train(self, pool, tdb, params, dbgc):
         dbgc.info("Calculating priors P(Yk) for all classes.")
