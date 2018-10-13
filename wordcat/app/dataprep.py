@@ -53,7 +53,7 @@ def parse_arguments():
                         action="store_true",
                         default=False)
 
-    return parser.parse_args(sys.argv)
+    return parser.parse_args()
 
 
 def process_data(spec, args, pool, dbgc):
@@ -88,9 +88,6 @@ def main():
 
     :return: An exit code.
     """
-    if sys.argv and "wordcat/app/dataprep.py" in sys.argv[0]:
-        sys.argv = sys.argv[1:]
-
     args = parse_arguments()
     dbgc = DebugConsole(args.color, args.verbose)
     specifications = [

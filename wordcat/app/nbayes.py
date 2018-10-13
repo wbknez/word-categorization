@@ -58,7 +58,7 @@ def parse_arguments():
     validator.add_argument("folds", type=int,
                            help="number of times to fold data for validation")
 
-    return parser.parse_args(sys.argv)
+    return parser.parse_args()
 
 
 def test(learner, pool, args, dbgc):
@@ -120,9 +120,6 @@ def main():
 
     :return: An exit code.
     """
-    if sys.argv and "wordcat/app/nbayes.py" in sys.argv[0]:
-        sys.argv = sys.argv[1:]
-
     args = parse_arguments()
     dbgc = DebugConsole(args.color, args.verbose)
 
