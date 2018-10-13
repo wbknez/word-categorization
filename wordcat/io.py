@@ -166,21 +166,20 @@ class CsvIO:
         return Vocabulary(words)
 
     @staticmethod
-    def write_predictions(stream, header, ids, predictions):
+    def write_predictions(stream, header, predictions):
         """
         Writes the specified predictions, associated and sorted by id, to the
         specified CSV stream with the specified header.
 
         :param stream: The CSV stream to write to.
         :param header: The label header(s) to use.
-        :param ids: The collection of test identifiers to use.
         :param predictions: The collection of predictions to use.
         """
         writer = csv.writer(stream, delimiter=",", quoting=csv.QUOTE_NONE)
 
         writer.writerow(header)
-        for id, prediction in zip(ids, predictions):
-            writer.writerow([id, prediction])
+        for prediction in predictions:
+            writer.writerow([prediction.id, prediction.result])
 
 
 class PickleIO:
