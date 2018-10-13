@@ -105,9 +105,12 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
 
     def count_words(self, mat):
         """
+        Counts the total number of words in each feature in the specified
+        sparse matrix.
 
-        :param mat:
-        :return:
+        :param mat: The sparse matrix of word counts to use.
+        :return: A tuple containing the total number of words in an entire
+        matrix, and a sparse vector of resulting column sums.
         """
         return mat.sum(), SparseVector.from_list(
             [column.sum() for column in mat.get_columns()], np.uint32
@@ -115,9 +118,14 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
 
     def find_max(self, scores):
         """
+        Determines the class of the maximum score.
 
-        :param scores:
-        :return:
+        If there is a tie, then the class with the largest prior wins.  If
+        there are two classes with the same score and prior, then the
+        lexographically smallest class wins.
+
+        :param scores: The list of scores to use.
+        :return: The maximum score's class.
         """
         max_score = max(scores.values())
         max_keys = [
@@ -129,10 +137,21 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
         return max_keys[[self.priors[key] for key in max_keys].index(max_score)]
 
     def make_map(self, counts, alpha, V):
-        denom = 1.0 / (counts[0] + ((alpha - 1) * V))
+        """
+        Computes a MAP estimate for the specified matrix of word counts with
+        the specified alpha and vocabulary length.
+
+        :param counts: The matrix to compute MAP estimates for.
+        :param alpha: The alpha Laplace coefficient to use.
+        :param V: The size of the vocabulary to use.
+        :return: A tuple consisting of the base MAP estimate when the count
+        for an arbitrary word is zero, and a sparse vector of MAP estimates
+        for every word in a vocabulary.
+        """
+        denominator = 1.0 / (counts[0] + ((alpha - 1) * V))
         return (
-            np.log2((alpha - 1) * denom),
-            ((counts[1] + (alpha - 1)) * denom).log2()
+            np.log2((alpha - 1) * denominator),
+            ((counts[1] + (alpha - 1)) * denominator).log2()
         )
 
     def predict(self, test, dbgc):
