@@ -7,8 +7,8 @@ from functools import partial
 import numpy as np
 from abc import ABCMeta, abstractmethod
 
-from storage import Prediction
 from wordcat.sparse import SparseVector
+from wordcat.storage import Prediction
 
 
 class LearningAlgorithm(metaclass=ABCMeta):
@@ -73,15 +73,14 @@ class LearningAlgorithm(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
-    def validate(self, vds, pool, dbgc):
+    def validate(self, pool, vds, dbgc):
         """
         Computes predictions for any and all tests in the specified
         validation set and compares them to their expected outcomes,
         using the specified processing pool to improve performance.
 
-        :param vds: The validation set to evaluate.
         :param pool: The processing pool to use.
+        :param vds: The validation set to evaluate.
         :param dbgc: The debug console to use.
         :return: A collection of both experimental and expected results
         ordered by test id.
@@ -89,8 +88,29 @@ class LearningAlgorithm(metaclass=ABCMeta):
         pass
 
 
+class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
+    """
+
+
+    Attributes:
+        weights (SparseMatrix):
+    """
+
+    def __init__(self, labels, vocab):
+        super().__init__(labels, vocab)
+
+        self.weights = None
+
+    def predict(self, test, dbgc):
+        pass
+
+    def train(self, pool, tdb, params, dbgc):
+        pass
+
+
 class NaiveBayesLearningAlgorithm(LearningAlgorithm):
     """
+
 
     Attributes:
         maps (dict): The mapping of maximum apriori estimates by class.
@@ -170,7 +190,10 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
             scores[classz] =\
                 prior + (intersect * words).sum() + (diff * no_words).sum()
 
-        dbgc.info("Scores for test: {} are: {}.".format(test.id, scores))
+        dbgc.info("Scores for test: {} are:\n{}.".format(
+            test.id,
+            ["{:.2f}".format(score) for score in scores.values()]
+        ))
         return Prediction(test.id, self.find_max(scores))
 
     def train(self, pool, tdb, params, dbgc):
@@ -199,6 +222,3 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
             cls: [y_k[idx], x_k[idx]] \
                 for idx, cls in enumerate(sorted(self.priors.keys()))
         }
-
-    def validate(self, vds, pool, dbgc):
-        pass
