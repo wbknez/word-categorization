@@ -60,6 +60,8 @@ class SparseMatrix:
             return self.data.dtype
         elif item == "row_count":
             return self.shape[0]
+        elif item == "T":
+            return self.transpose()
 
     def __getitem__(self, item):
         return self.data[item], (self.rows[item], self.cols[item])
@@ -147,6 +149,15 @@ class SparseMatrix:
         """
         return np.sum(self.data)
 
+    def transpose(self):
+        """
+        Computes the transpose of this sparse matrix.
+
+        :return: The transpose.
+        """
+        return SparseMatrix(self.data, self.cols, self.rows,
+                            (self.col_count, self.row_count))
+
     @staticmethod
     def from_list(dense_matrix, dtype=None):
         """
@@ -179,9 +190,37 @@ class SparseMatrix:
                             (len(dense_matrix), len(dense_matrix[0])))
 
     @staticmethod
+    def identity(shape, dtype=None):
+        """
+        Creates a sparse identity matrix with the specified shape and element
+        data type.
+
+        :param shape: The shape of the matrix to create.
+        :param dtype: The element data type to use.
+        :return: A sparse identity matrix.
+        """
+        if not dtype:
+            dtype = np.uint16
+
+        cols = []
+        data = []
+        rows = []
+
+        for row_index in range(shape[0]):
+            for col_index in range(shape[1]):
+                if row_index == col_index:
+                    cols.append(col_index)
+                    data.append(1)
+                    rows.append(row_index)
+
+        return SparseMatrix(np.array(data, copy=False, dtype=dtype),
+                            np.array(rows, copy=False, dtype=np.uint32),
+                            np.array(cols, copy=False, dtype=np.uint32), shape)
+
+    @staticmethod
     def random(low, high, shape, dtype=None):
         """
-        Create a random sparse matrix with the sepcified low and high bounds
+        Creates a random sparse matrix with the sepcified low and high bounds
         and with the specified shape and element data type.
 
         :param low: The lower bound to use, inclusive.
@@ -198,7 +237,7 @@ class SparseMatrix:
         rows = []
 
         for row_index in range(shape[0]):
-            for col_index in range(shape[0]):
+            for col_index in range(shape[1]):
                 val = np.random.randint(low, high, dtype=dtype)
 
                 if val != 0:
