@@ -2,6 +2,8 @@
 Contains unit tests to ensure that the sparse matrix data structure works as
 intended.
 """
+from copy import copy
+
 import numpy as np
 from unittest import TestCase
 
@@ -89,6 +91,24 @@ class SparseMatrixTest(TestCase):
         for ex, res in zip(expected, result):
             self.assertEqual(res, ex)
 
+    def test_transpose_using_non_square_identity_matrix(self):
+        mat = SparseMatrix.identity((7, 9))
+
+        expected = SparseMatrix.identity((9, 7))
+        result = mat.T
+
+        self.assertEqual(result.shape, (9, 7))
+        self.assertEqual(result, expected)
+
+    def test_transpose_using_square_identity_matrix(self):
+        mat = SparseMatrix.identity((5, 5))
+
+        expected = copy(mat)
+        result = mat.T
+
+        self.assertEqual(result.shape, (5, 5))
+        self.assertEqual(result, expected)
+
     def test_from_list_with_no_unique_elements(self):
         mat = SparseMatrix.from_list([[0, 0, 0, 0], [0, 0, 0, 0],
                                       [0, 0, 0, 0], [0, 0, 0, 0]])
@@ -105,6 +125,25 @@ class SparseMatrixTest(TestCase):
         self.assertTrue(np.array_equal(mat.cols, np.array([1, 3, 0, 2])))
         self.assertTrue(np.array_equal(mat.data, np.array([1, 2, 4, 3])))
         self.assertTrue(np.array_equal(mat.rows, np.array([0, 1, 2, 3])))
+
+    def test_identity_with_single_vector(self):
+        expected = SparseMatrix.from_list([[1, 0, 0, 0, 0]])
+        result = SparseMatrix.identity((1, 5))
+
+        self.assertEqual(result.shape, (1, 5))
+        self.assertEqual(result, expected)
+
+    def test_identity_with_multiple_vectors(self):
+        expected = SparseMatrix.from_list([
+            [1, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0]
+        ])
+        result = SparseMatrix.identity((4, 5))
+
+        self.assertEqual(result.shape, (4, 5))
+        self.assertEqual(result, expected)
 
     def test_vstack_with_multiple_vectors(self):
         arrays = [np.random.randint(0, 10, 30) for _ in range(20)]
