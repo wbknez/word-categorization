@@ -89,6 +89,14 @@ class SparseMatrix:
     def __setstate__(self, state):
         self.__dict__.update(state)
 
+    def exp(self):
+        """
+        Computes the sparse matrix that results from exponentiating this one.
+
+        :return: The exp of a sparse matrix.
+        """
+        return SparseMatrix(np.exp(self.data), self.rows, self.cols, self.shape)
+
     def get_column(self, index):
         """
         Returns the column at the specified index in this sparse matrix as a
@@ -140,6 +148,16 @@ class SparseMatrix:
         """
         for i in range(self.shape[0]):
             yield self.get_row(i)
+
+    def log2(self):
+        """
+        Computes the sparse matrix that results from taking the base-2
+        logarithm of this one.
+
+        :return: The base-2 logarithm of a sparse matrix.
+        """
+        return SparseMatrix(np.log2(self.data), self.rows, self.cols,
+                            self.shape)
 
     def sum(self):
         """
