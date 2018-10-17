@@ -167,6 +167,24 @@ class SparseMatrix:
         """
         return np.sum(self.data)
 
+    def to_dense(self, dtype=None):
+        """
+        Converts this sparse matrix to a dense one with the specified element
+        data type.
+
+        :param dtype: The element data type to use.
+        :return: A dense matrix.
+        """
+        if not dtype:
+            dtype = self.data.dtype
+
+        mat = np.zeros(self.shape, dtype=dtype)
+
+        for index, row in enumerate(self.get_rows()):
+            mat[index, row.indices] = row.data
+
+        return mat
+
     def transpose(self):
         """
         Computes the transpose of this sparse matrix.
@@ -558,6 +576,21 @@ class SparseVector:
         :return: The sum of a sparse vector.
         """
         return np.sum(self.data)
+
+    def to_dense(self, dtype=None):
+        """
+        Converts this sparse vector to a dense one with the specified element
+        data type.
+
+        :param dtype: The element data type to use.
+        :return: A dense vector.
+        """
+        if not dtype:
+            dtype = self.data.dtype
+
+        vec = np.zeros(self.size, dtype=dtype)
+        vec[self.indices] = self.data
+        return vec
 
     def venn(self, other):
         """

@@ -320,6 +320,23 @@ class SparseVectorTest(TestCase):
 
         self.assertEqual(result, expected)
 
+    def test_to_dense_with_random(self):
+        array = np.random.randint(0, 5, 30, dtype=np.uint16)
+        vec = SparseVector.from_list(array)
+
+        expected = np.copy(array)
+        result = vec.to_dense()
+
+        self.assertTrue(np.array_equal(result, expected))
+
+    def test_to_dense_with_zero(self):
+        vec = SparseVector.zero(7)
+
+        expected = np.zeros(7, dtype=np.uint16)
+        result = vec.to_dense()
+
+        self.assertTrue(np.array_equal(result, expected))
+
     def test_venn_with_random(self):
         array_a = np.random.randint(0, 100, 30)
         array_b = np.random.randint(0, 100, 30)

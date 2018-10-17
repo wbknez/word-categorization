@@ -91,6 +91,23 @@ class SparseMatrixTest(TestCase):
         for ex, res in zip(expected, result):
             self.assertEqual(res, ex)
 
+    def test_to_dense_with_random(self):
+        array = np.random.randint(0, 5, (10, 10), dtype=np.uint16)
+        mat = SparseMatrix.from_list(array)
+
+        expected = np.copy(array)
+        result = mat.to_dense()
+
+        self.assertTrue(np.array_equal(result, expected))
+
+    def test_to_dense_with_zero(self):
+        mat = SparseMatrix.zero((5, 5), dtype=np.uint16)
+
+        expected = np.zeros((5, 5), dtype=np.uint16)
+        result = mat.to_dense()
+
+        self.assertTrue(np.array_equal(result, expected))
+
     def test_transpose_using_non_square_identity_matrix(self):
         mat = SparseMatrix.identity((7, 9))
 
