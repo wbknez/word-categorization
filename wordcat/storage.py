@@ -150,13 +150,13 @@ class TrainingDatabase:
         return NotImplemented
 
     def __getattr__(self, item):
-        if item == "cols":
+        if item == "col_count":
             return self.counts.shape[1]
         elif item == "data":
             return self.counts.data
         elif item == "dtype":
             return self.counts.dtype
-        elif item == "rows":
+        elif item == "row_count":
             return self.counts.shape[0]
         elif item == "shape":
             return self.counts.shape
@@ -210,6 +210,22 @@ class TrainingDatabase:
         frequencies = np.divide(frequencies, len(self.classes))
 
         return {cls: freq for cls, freq in zip(class_counts, frequencies)}
+
+    def normalize(self):
+        """
+        Normalizes the data in this training database using column summation
+        after first converting it to a dense float-point matrix.
+
+        :return: A tuple consisting of the normalized data and the
+        normalization vector used to produce it.
+        """
+        examples = self.counts.to_dense(dtype=np.float32)
+        norms = examples.sum(axis=0)
+        indices = np.where(norms != 0)
+
+        examples[:, indices] = examples[:, indices] / norms[indices]
+
+        return examples, norms
 
     def select(self, classz):
         """
