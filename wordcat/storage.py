@@ -3,6 +3,7 @@ Contains all classes and functions related to storing data for a learning
 algorithm to use and operate upon.
 """
 from collections import namedtuple
+from copy import copy
 
 import numpy as np
 
@@ -139,6 +140,9 @@ class TrainingDatabase:
         self.classes = classes
         self.counts = counts
 
+    def __copy__(self):
+        return TrainingDatabase(np.copy(self.classes), copy(self.counts))
+
     def __eq__(self, other):
         if isinstance(other, TrainingDatabase):
             return np.array_equal(self.classes, other.classes) and \
@@ -166,7 +170,24 @@ class TrainingDatabase:
     def __setstate__(self, state):
         self.__dict__.update(state)
 
-    def create_class_frequency_table(self):
+    def create_deltas(self):
+        """
+        Computes and returns the matrix of binary classifications per unique
+        class in this training database; that is, each row represents which
+        examples belong to a class (given by a one) or not (denoted as zero).
+
+        :return: A matrix of example classifications by class.
+        """
+        num_classes = np.max(self.classes) + 1
+        deltas = np.zeros((num_classes, self.counts.row_count), dtype=np.uint8)
+
+        for classz in range(num_classes):
+            indices = np.where(self.classes == classz)
+            deltas[classz, indices] = 1
+
+        return deltas
+
+    def create_frequencies(self):
         """
         Computes and returns the frequencies of all unique classes in this
         training database associated by identifier.

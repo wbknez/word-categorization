@@ -16,16 +16,39 @@ class DatabaseTest(TestCase):
     Test suite for TrainingDatabase.
     """
 
-    def test_class_frequencies_with_single_class(self):
+    def test_create_deltas_with_single_class(self):
+        tdb = TrainingDatabase(np.full(1200, 3, dtype=np.uint8),
+                               SparseMatrix.zero((1200, 100)))
+
+        expected = np.zeros((4, tdb.counts.row_count), dtype=np.uint8)
+        expected[3, :] = 1
+        result = tdb.create_deltas()
+
+        self.assertTrue(np.array_equal(result, expected))
+
+    def test_create_deltas_with_multiple_classes(self):
+        tdb = TrainingDatabase(np.random.randint(1, 4, 1200, dtype=np.uint8),
+                               SparseMatrix.zero((1200, 100)))
+
+        expected = np.zeros((4, tdb.counts.row_count), dtype=np.uint8)
+
+        for i in range(4):
+            expected[i, np.where(tdb.classes == i)] = 1
+
+        result = tdb.create_deltas()
+
+        self.assertTrue(np.array_equal(result, expected))
+
+    def test_create_frequencies_with_single_class(self):
         tdb = TrainingDatabase(np.full(1200, 3, dtype=np.uint8),
                                SparseMatrix.zero((1200, 100)))
 
         expected = {3: 1.0}
-        result = tdb.create_class_frequency_table()
+        result = tdb.create_frequencies()
 
         self.assertEqual(result, expected)
 
-    def test_class_frequencies_with_multiple_classes(self):
+    def test_create_frequencies_with_multiple_classes(self):
         tdb = TrainingDatabase(np.random.randint(1, 8, 1200, dtype=np.uint8),
                                SparseMatrix.zero((1200, 100)))
         class_counts, frequencies = np.unique(tdb.classes, return_counts=True)
@@ -33,7 +56,7 @@ class DatabaseTest(TestCase):
         expected = {
             cls: (freq / 1200) for cls, freq in zip(class_counts, frequencies)
         }
-        result = tdb.create_class_frequency_table()
+        result = tdb.create_frequencies()
 
         self.assertTrue(result, expected)
 
