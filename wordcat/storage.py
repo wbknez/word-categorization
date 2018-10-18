@@ -211,22 +211,6 @@ class TrainingDatabase:
 
         return {cls: freq for cls, freq in zip(class_counts, frequencies)}
 
-    def normalize(self):
-        """
-        Normalizes the data in this training database using column summation
-        after first converting it to a dense float-point matrix.
-
-        :return: A tuple consisting of the normalized data and the
-        normalization vector used to produce it.
-        """
-        examples = self.counts.to_dense(dtype=np.float32)
-        norms = examples.sum(axis=0)
-        indices = np.where(norms != 0)
-
-        examples[:, indices] = examples[:, indices] / norms[indices]
-
-        return examples, norms
-
     def select(self, classz):
         """
         Computes the sub-matrix that represents all training examples whose

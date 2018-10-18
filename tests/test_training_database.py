@@ -60,34 +60,6 @@ class DatabaseTest(TestCase):
 
         self.assertTrue(result, expected)
 
-    def test_normalize_with_random(self):
-        array = np.random.randint(0, 5, (10, 61189), dtype=np.uint16)
-        tdb = TrainingDatabase(np.zeros(10, dtype=np.uint8),
-                               SparseMatrix.from_list(array))
-
-        expected0 = np.copy(array).astype(np.float32)
-        expected1 = array.sum(axis=0).astype(np.float32)
-
-        i = np.where(expected1 != 0)[0]
-        expected0[:, i] = expected0[:, i] / expected1[i]
-
-        result0, result1 = tdb.normalize()
-
-        self.assertTrue(np.array_equal(result0, expected0))
-        self.assertTrue(np.array_equal(result1, expected1))
-
-    def test_normalize_with_zero(self):
-        tdb = TrainingDatabase(np.zeros(1, dtype=np.uint8),
-                               SparseMatrix.zero((1, 61189)))
-
-        expected0 = np.zeros((1, 61189), dtype=np.float32)
-        expected1 = np.zeros(61189, dtype=np.float32)
-
-        result0, result1 = tdb.normalize()
-
-        self.assertTrue(np.array_equal(result0, expected0))
-        self.assertTrue(np.array_equal(result1, expected1))
-
     def test_select_with_multiple_classes(self):
         classes = np.array([1, 1, 2, 2, 3, 3, 2, 1, 3, 1], dtype=np.uint8)
         vectors = [SparseVector.random(0, 5, 10) for _ in range(10)]
