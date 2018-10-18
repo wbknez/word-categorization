@@ -93,19 +93,71 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
 
 
     Attributes:
-        weights (SparseMatrix):
+        w (np.array):
     """
 
     def __init__(self, labels, vocab):
         super().__init__(labels, vocab)
 
-        self.weights = None
+        self.norms = None
+        self.w = None
+
+    def normalize(self, obj, norms=None):
+        """
+
+        :param obj:
+        :return:
+        """
+        if not norms:
+            norms = obj.sum(axis=0)
+        indices = np.where(norms != 0)
+
+        obj[:, indices] = obj[:, indices] / norms[indices]
+        return obj
 
     def predict(self, test, dbgc):
-        pass
+        return Prediction(0, 0)
 
     def train(self, pool, tdb, params, dbgc):
-        pass
+        eta = params.eta
+        k = np.max(tdb.classes) + 1
+        l = params.lambda_
+        m = tdb.row_count
+        n = tdb.col_count
+
+        dbgc.info("Converting training data to dense format.")
+        x = tdb.counts.to_dense(np.float32)
+
+        dbgc.info("Normalzing training data.")
+        self.norms = x.sum(axis=0)
+        x = self.normalize(x, self.norms)
+
+        dbgc.info("Creating initial weights matrix W(0).")
+        self.w = np.random.random((k, n))
+        self.w[0, :] = 0.0
+
+        dbgc.info("Normalizing weights.")
+        self.w = self.normalize(self.w, self.w.sum(axis=0))
+
+        dbgc.info("Creating initial probability matrix P(Y|W,X).")
+        p_ywx = np.zeros((k, m), dtype=np.float32)
+
+        dbgc.info("Compiling deltas")
+        deltas = tdb.create_deltas().astype(np.float32)
+
+        for i in range(params.steps):
+            dbgc.info("Working on iteration: {} of {}.".format(i, params.steps))
+
+            dbgc.info("Calculating probability matrix P(Yk|W,Xi).")
+            p_ywx = np.exp(np.dot(self.w, x.T))
+            p_ywx[-1, :] = 1.0
+
+            dbgc.info("Normalizing probability matrix.")
+            p_ywx = self.normalize(p_ywx, p_ywx.sum(axis=0))
+
+            dbgc.info("Computing new weights W(t+1) using current W(t).")
+            self.w = self.w + eta * (np.dot((deltas - p_ywx), x) - (l * self.w))
+            self.w = self.normalize(self.w, self.w.sum(axis=0))
 
 
 class NaiveBayesLearningAlgorithm(LearningAlgorithm):
@@ -199,7 +251,7 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
     def train(self, pool, tdb, params, dbgc):
         dbgc.info("Calculating priors P(Yk) for all classes.")
         self.priors = {
-            k: np.log2(v) for k, v in tdb.create_class_frequency_table().items()
+            k: np.log2(v) for k, v in tdb.create_frequencies().items()
         }
 
         dbgc.info("Creating sub-matrices for indexing.")
