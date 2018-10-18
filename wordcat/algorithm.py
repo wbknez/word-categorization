@@ -93,6 +93,7 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
 
 
     Attributes:
+        norms (np.array):
         w (np.array):
     """
 
@@ -104,9 +105,14 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
 
     def normalize(self, obj, norms=None):
         """
+        Normalizes the specified NumPy array or matrix (of arrays) using the
+        specified normalizing constants if supplied, otherwise the column
+        summations are used instead.
 
-        :param obj:
-        :return:
+        :param obj: The NumPy object to normalize
+        :param norms: The normalizing constants to use, if any.  If None then
+        the column summations will be used instead.
+        :return: A normalized NumPy object.
         """
         if not norms:
             norms = obj.sum(axis=0)
@@ -116,7 +122,17 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
         return obj
 
     def predict(self, test, dbgc):
-        return Prediction(0, 0)
+        dbgc.info("Working on test: {}".format(test.id))
+
+        norm_query = self.normalize(test.query.to_dense(np.float32), self.norms)
+        scores = np.dot(self.w, norm_query.T)
+
+        dbgc.info("Scores for test: {} are:\n{}.".format(
+            test.id,
+            ["{:.2f}".format(score) for score in scores]
+        ))
+
+        return Prediction(test.id, np.argmax(scores[1:]) + 1)
 
     def train(self, pool, tdb, params, dbgc):
         eta = params.eta
@@ -135,6 +151,7 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
         dbgc.info("Creating initial weights matrix W(0).")
         self.w = np.random.random((k, n))
         self.w[0, :] = 0.0
+        self.w[:, 0] = 0.0
 
         dbgc.info("Normalizing weights.")
         self.w = self.normalize(self.w, self.w.sum(axis=0))
