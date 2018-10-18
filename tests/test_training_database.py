@@ -85,6 +85,34 @@ class DatabaseTest(TestCase):
 
         self.assertEqual(result, expected)
 
+    def test_shuffle(self):
+        tdb = TrainingDatabase(np.array([0, 1, 2, 3], dtype=np.uint8),
+                               SparseMatrix.from_list([
+                                   [1, 2, 3, 4, 5],
+                                   [6, 7, 8, 9, 10],
+                                   [11, 12, 13, 14, 15],
+                                   [16, 17, 18, 19, 20]
+                               ]))
+        mirror = copy(tdb)
+
+        for _ in range(100):
+            tdb.shuffle()
+
+        expected0 = np.unique(mirror.classes, return_counts=True)
+        result0 = np.unique(tdb.classes, return_counts=True)
+
+        self.assertTrue(result0, expected0)
+
+        counts = 0
+        row_set = set([row for row in tdb.counts.get_rows()])
+
+
+        for row in mirror.counts.get_rows():
+            if row in row_set:
+                counts += 1
+
+        self.assertEqual(counts, mirror.counts.row_count)
+
     def test_split_with_simple_matrix(self):
         tdb = TrainingDatabase(np.array([0, 1, 1, 0], dtype=np.uint8),
                                SparseMatrix.from_list([
