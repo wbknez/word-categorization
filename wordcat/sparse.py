@@ -69,6 +69,12 @@ class SparseMatrix:
     def __getstate__(self):
         return self.__dict__.copy()
 
+    def __hash__(self):
+        return hash((self.data.data.tobytes(),
+                     self.rows.data.tobytes(),
+                     self.cols.data.tobytes(),
+                     self.shape))
+
     def __iter__(self):
         for i in range(self.data.size):
             return self.data[i], (self.rows[i], self.cols[i])
@@ -415,7 +421,8 @@ class SparseVector:
         return self.__dict__.copy()
 
     def __hash__(self):
-        return hash((self.data, self.indices, self.size))
+        return hash((self.data.data.tobytes(),
+                     self.indices.data.tobytes(), self.size))
 
     def __iter__(self):
         for i in range(self.data.size):
