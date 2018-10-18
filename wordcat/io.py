@@ -166,6 +166,24 @@ class CsvIO:
         return Vocabulary(words)
 
     @staticmethod
+    def write_confusion(stream, header, cfm):
+        """
+        Writes the specified confusion matrix to the specified CSV stream
+        with the specified header.
+
+        :param stream: The CSV stream to write to.
+        :param header: The class header(s) to use.
+        :param cfm: The confusion matrix to write.
+        """
+        writer = csv.writer(stream, delimiter=",", quoting=csv.QUOTE_NONNUMERIC)
+
+        writer.writerow(header)
+        for classz in sorted(cfm.counts.keys()):
+            writer.writerow([
+                cfm.mat[classz][c] for c in sorted(cfm.mat[classz].keys())
+            ])
+
+    @staticmethod
     def write_predictions(stream, header, predictions):
         """
         Writes the specified predictions, associated and sorted by id, to the
