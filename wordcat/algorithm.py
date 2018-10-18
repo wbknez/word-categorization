@@ -8,7 +8,7 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 
 from wordcat.sparse import SparseVector
-from wordcat.storage import Prediction
+from wordcat.storage import Prediction, ValidatedPrediction
 
 
 class LearningAlgorithm(metaclass=ABCMeta):
@@ -73,19 +73,23 @@ class LearningAlgorithm(metaclass=ABCMeta):
         """
         pass
 
-    def validate(self, pool, vds, dbgc):
+    def validate(self, pool, ts, ans, dbgc):
         """
         Computes predictions for any and all tests in the specified
         validation set and compares them to their expected outcomes,
         using the specified processing pool to improve performance.
 
         :param pool: The processing pool to use.
-        :param vds: The validation set to evaluate.
+        :param ts: The testing set to evaluate.
+        :param ans: The correct predictive results.
         :param dbgc: The debug console to use.
         :return: A collection of both experimental and expected results
         ordered by test id.
         """
-        pass
+        predictions = self.test(pool, ts, dbgc)
+        return [
+            ValidatedPrediction(ans[i], predictions[i]) for i in range(len(ts))
+        ]
 
 
 class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
@@ -114,7 +118,8 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
         the column summations will be used instead.
         :return: A normalized NumPy object.
         """
-        if not norms:
+        if np.any(norms) is None:
+            print("Not any!")
             norms = obj.sum(axis=0)
         indices = np.where(norms != 0)
 
@@ -123,8 +128,11 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
 
     def predict(self, test, dbgc):
         dbgc.info("Working on test: {}".format(test.id))
+        indices = np.where(self.norms != 0)
 
-        norm_query = self.normalize(test.query.to_dense(np.float32), self.norms)
+        norm_query = test.query.to_dense(np.float32)
+        norm_query[indices] = norm_query[indices] / self.norms[indices]
+
         scores = np.dot(self.w, norm_query.T)
 
         dbgc.info("Scores for test: {} are:\n{}.".format(
@@ -132,7 +140,7 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
             ["{:.2f}".format(score) for score in scores]
         ))
 
-        return Prediction(test.id, np.argmax(scores[1:]) + 1)
+        return Prediction(test.id, np.argmax(scores))
 
     def train(self, pool, tdb, params, dbgc):
         eta = params.eta
@@ -174,6 +182,8 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
 
             dbgc.info("Computing new weights W(t+1) using current W(t).")
             self.w = self.w + eta * (np.dot((deltas - p_ywx), x) - (l * self.w))
+
+            dbgc.info("Normalizing new weights W(t + 1).")
             self.w = self.normalize(self.w, self.w.sum(axis=0))
 
 
