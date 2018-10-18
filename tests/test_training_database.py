@@ -84,3 +84,28 @@ class DatabaseTest(TestCase):
         result = tdb.select(1)
 
         self.assertEqual(result, expected)
+
+    def test_split_with_simple_matrix(self):
+        tdb = TrainingDatabase(np.array([0, 1, 1, 0], dtype=np.uint8),
+                               SparseMatrix.from_list([
+                                   [0, 0, 0, 0],
+                                   [2, 2, 2, 2],
+                                   [3, 3, 3, 3],
+                                   [1, 1, 1, 1]
+                               ]))
+
+        expected0 = TrainingDatabase(np.array([0, 0], dtype=np.uint8),
+                                     SparseMatrix.from_list([
+                                         [0, 0, 0, 0],
+                                         [1, 1, 1, 1]
+                                     ]))
+        expected1 = TrainingDatabase(np.array([1, 1], dtype=np.uint8),
+                                     SparseMatrix.from_list([
+                                         [2, 2, 2, 2],
+                                         [3, 3, 3, 3]
+                                     ]))
+
+        result1 = tdb.split(1, 3)
+
+        self.assertEqual(tdb, expected0)
+        self.assertEqual(result1, expected1)

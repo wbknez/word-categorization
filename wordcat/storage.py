@@ -226,17 +226,57 @@ class TrainingDatabase:
         """
 
         """
-        items = [
-            self.classes,
-            self.counts.cols,
-            self.counts.data,
-            self.counts.rows,
-        ]
+        rows = [row for row in self.counts.get_rows()]
         state = np.random.get_state()
 
-        for item in items:
+        for item in [self.classes, rows]:
             np.random.set_state(state)
             np.random.shuffle(item)
+
+        self.counts = SparseMatrix.vstack(rows, dtype=self.counts.data.dtype)
+
+    def split(self, start, end):
+        """
+        Splits this training database into two separate ones, removing the
+        elements from the specified interval and creating a new databse from
+        them.
+
+        :param start: The starting row, inclusive.
+        :param end: The ending row, exclusive.
+        :return: A new database from any removed elements.
+        """
+        if end > self.counts.row_count:
+            raise ValueError("End must be less than the number of rows.")
+        if start < 0:
+            raise ValueError("Start must be positive.")
+        if start >= self.counts.row_count:
+            raise ValueError("Start must be less than the number of rows.")
+        if start >= end:
+            raise ValueError("Start must be smaller than end.")
+
+        difference = end - start
+        modified = np.where(self.counts.rows >= end)[0]
+        removed = np.where((self.counts.rows >= start) &
+                           (self.counts.rows < end))[0]
+
+        self.counts.rows[modified] = self.counts.rows[modified] - difference
+        self.counts.rows[removed] = self.counts.rows[removed] - start
+
+        ntdb = TrainingDatabase(
+            self.classes[start:end],
+            SparseMatrix(self.counts.data[removed], self.counts.rows[removed],
+                         self.counts.cols[removed],
+                         (difference, self.counts.col_count))
+        )
+
+        self.classes = np.delete(self.classes, slice(start, end))
+        self.counts.cols = np.delete(self.counts.cols, removed)
+        self.counts.data = np.delete(self.counts.data, removed)
+        self.counts.rows = np.delete(self.counts.rows, removed)
+        self.counts.shape = (self.counts.row_count - difference,
+                             self.counts.col_count)
+
+        return ntdb
 
 
 class Vocabulary:
