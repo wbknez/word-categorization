@@ -12,7 +12,7 @@ from functools import partial
 
 from wordcat.sparse import SparseMatrix, SparseVector
 from wordcat.storage import TrainingDatabase, TestingSet, Vocabulary, \
-    ClassLabels
+    ClassLabels, Test
 
 
 class CsvIO:
@@ -134,21 +134,20 @@ class CsvIO:
         :param stream: The CSV stream to read from.
         :return: A set filled with some data to test with.
         """
-        ids = []
         tests = []
 
         processor = partial(CsvIO.process_line, skip_class=True, skip_id=False)
         results = pool.map(processor, CsvIO.generate_lines(stream))
 
         for result in results:
-            ids.append(result.id)
-            tests.append(SparseVector(data=np.array(result.data, copy=False,
-                                               dtype=np.uint16),
+            tests.append(Test(result.id,
+                         SparseVector(data=np.array(result.data, copy=False,
+                                                    dtype=np.uint16),
                                       indices=np.array(result.cols, copy=False,
-                                               dtype=np.uint32),
-                                      size=61189))
+                                                       dtype=np.uint32),
+                                      size=61189)))
 
-        return TestingSet(ids, tests)
+        return TestingSet(tests)
 
     @staticmethod
     def read_vocabulary(_, stream):

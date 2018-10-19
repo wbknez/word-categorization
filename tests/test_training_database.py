@@ -8,7 +8,7 @@ import numpy as np
 from unittest import TestCase
 
 from wordcat.sparse import SparseMatrix, SparseVector
-from wordcat.storage import TrainingDatabase
+from wordcat.storage import TrainingDatabase, TestingSet, Test
 
 
 class DatabaseTest(TestCase):
@@ -127,13 +127,14 @@ class DatabaseTest(TestCase):
                                          [0, 0, 0, 0],
                                          [1, 1, 1, 1]
                                      ]))
-        expected1 = TrainingDatabase(np.array([1, 1], dtype=np.uint8),
-                                     SparseMatrix.from_list([
-                                         [2, 2, 2, 2],
-                                         [3, 3, 3, 3]
-                                     ]))
+        expected1 = TestingSet([
+            Test(0, SparseVector.from_list([2, 2, 2, 2])),
+            Test(1, SparseVector.from_list([3, 3, 3, 3]))
+        ])
+        expected2 = np.array([1, 1], dtype=np.uint8)
 
-        result1 = tdb.split(1, 3)
+        result0, result1, result2 = tdb.split(1, 3)
 
-        self.assertEqual(tdb, expected0)
+        self.assertEqual(result0, expected0)
         self.assertEqual(result1, expected1)
+        self.assertTrue(np.array_equal(result2, expected2))

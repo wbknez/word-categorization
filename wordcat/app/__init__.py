@@ -2,6 +2,7 @@
 
 """
 import os
+from math import floor
 
 from wordcat.io import CsvIO, PickleIO
 
@@ -56,4 +57,14 @@ def validate(learner, pool, args, dbgc):
     :param args: The user-chosen parameters to use.
     :param dbgc: The debug console to use.
     """
+    train_path = os.path.join(args.dir, "training.pkl")
+
+    dbgc.info("Reading training data.")
+    with open(train_path, "rb") as stream:
+        tdb = PickleIO.read_database(stream)
+
+    dbgc.info("Calculating folds.")
+
+
+    dbgc.info("Beginning k-fold cross validation.")
     pass

@@ -9,7 +9,7 @@ from unittest import TestCase
 
 from wordcat.io import CsvIO
 from wordcat.sparse import SparseMatrix, SparseVector
-from wordcat.storage import TestingSet, TrainingDatabase
+from wordcat.storage import TestingSet, TrainingDatabase, Test
 
 
 class CsvIOTest(TestCase):
@@ -59,13 +59,12 @@ class CsvIOTest(TestCase):
               "2,0,11,0,12,0,13,14,0,15\n"
 
         with Pool(processes=4) as pool, StringIO(src) as stream:
-            expected = TestingSet(
-                [0, 1, 2], [
-                    SparseVector.from_list([0, 1, 0, 2, 0, 3, 4, 0, 5]),
-                    SparseVector.from_list([6, 0, 7, 0, 8, 9, 0, 10, 0]),
-                    SparseVector.from_list([0, 11, 0, 12, 0, 13, 14, 0, 15])
-                ]
-            )
+            expected = TestingSet([
+                Test(0, SparseVector.from_list([0, 1, 0, 2, 0, 3, 4, 0, 5])),
+                Test(1, SparseVector.from_list([6, 0, 7, 0, 8, 9, 0, 10, 0])),
+                Test(2, SparseVector.from_list([0, 11, 0, 12, 0, 13, 14, 0,
+                                                15]))
+            ])
 
             for i in range(3):
                 expected[i].query.indices = expected[i].query.indices + 1
@@ -79,9 +78,9 @@ class CsvIOTest(TestCase):
         src = "0,0,1,0,2,0,3,4,0,5"
 
         with Pool(processes=4) as pool, StringIO(src) as stream:
-            expected = TestingSet(
-                [0], [SparseVector.from_list([0, 1, 0, 2, 0, 3, 4, 0, 5])]
-            )
+            expected = TestingSet([
+                Test(0, SparseVector.from_list([0, 1, 0, 2, 0, 3, 4, 0, 5]))
+            ])
             expected[0].query.indices = expected[0].query.indices + 1
             expected[0].query.size = expected[0].query.size + 1
 
