@@ -76,7 +76,7 @@ class ConfusionMatrix:
             self.counts[valpred.answer][valpred.prediction.result] += 1
 
 
-class Fold(namedtuple("Fold", ["end", "start"])):
+class Fold(namedtuple("Fold", ["start", "end"])):
     """
     Represents a single slice of a training database that should be used
     instead for testing and validation.
@@ -218,6 +218,24 @@ class TrainingDatabase:
             deltas[classz, indices] = 1
 
         return deltas
+
+    def create_k_folds(self, k):
+        """
+        Creates k "folds", or indexed divisions, that may be used to
+        subdivide this database into a new training database plus validation
+        set.
+
+        :param k: The number of indexed folds to create.
+        :return: A collection of indices representing folds.
+        """
+        if k < 1:
+            raise ValueError("K must be at least one or greater.")
+
+        ratio = np.floor(self.counts.row_count / k)
+        folds = [ratio * i for i in range(k + 1)]
+        folds[-1] = self.counts.row_count
+
+        return [Fold(folds[j], folds[j + 1]) for j in range(k)]
 
     def create_frequencies(self):
         """

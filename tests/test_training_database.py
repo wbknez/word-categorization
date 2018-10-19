@@ -8,7 +8,7 @@ import numpy as np
 from unittest import TestCase
 
 from wordcat.sparse import SparseMatrix, SparseVector
-from wordcat.storage import TrainingDatabase, TestingSet, Test
+from wordcat.storage import TrainingDatabase, TestingSet, Test, Fold
 
 
 class DatabaseTest(TestCase):
@@ -38,6 +38,30 @@ class DatabaseTest(TestCase):
         result = tdb.create_deltas()
 
         self.assertTrue(np.array_equal(result, expected))
+
+    def test_create_folds_with_even_split(self):
+        tdb = TrainingDatabase(np.full(1200, 3, dtype=np.uint8),
+                               SparseMatrix.zero((1200, 100)))
+
+        expected = [
+            Fold(0, 240), Fold(240, 480), Fold(480, 720), Fold(720, 960),
+            Fold(960, 1200)
+        ]
+        result = tdb.create_k_folds(5)
+
+        self.assertEqual(result, expected)
+
+    def test_create_folds_with_odd_split(self):
+        tdb = TrainingDatabase(np.full(1200, 3, dtype=np.uint8),
+                               SparseMatrix.zero((1200, 100)))
+
+        expected = [
+            Fold(0, 171), Fold(171, 342), Fold(342, 513), Fold(513, 684),
+            Fold(684, 855), Fold(855, 1026), Fold(1026, 1200)
+        ]
+        result = tdb.create_k_folds(7)
+
+        self.assertEqual(result, expected)
 
     def test_create_frequencies_with_single_class(self):
         tdb = TrainingDatabase(np.full(1200, 3, dtype=np.uint8),
@@ -105,7 +129,6 @@ class DatabaseTest(TestCase):
 
         counts = 0
         row_set = set([row for row in tdb.counts.get_rows()])
-
 
         for row in mirror.counts.get_rows():
             if row in row_set:
