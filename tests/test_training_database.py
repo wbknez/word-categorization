@@ -156,7 +156,7 @@ class DatabaseTest(TestCase):
         ])
         expected2 = np.array([1, 1], dtype=np.uint8)
 
-        result0, result1, result2 = tdb.split(1, 3)
+        result0, result1, result2 = tdb.split(Fold(1, 3))
 
         self.assertEqual(result0, expected0)
         self.assertEqual(result1, expected1)

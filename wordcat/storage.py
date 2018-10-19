@@ -286,18 +286,20 @@ class TrainingDatabase:
 
         self.counts = SparseMatrix.vstack(rows, dtype=self.counts.data.dtype)
 
-    def split(self, start, end):
+    def split(self, fold):
         """
         Splits this training database into two items: a new database formed
-        from removing the elements from the specified interval and a testing
+        from removing the elements from the specified fold and a testing
         set created from the rows taken.
 
-        :param start: The starting row, inclusive.
-        :param end: The ending row, exclusive.
+        :param fold: The indexed rows to split.
         :return: A tuple consisting of a new database free of a selection of
         rows, a testing set made from the remainder, and the true classes to
         validate the set.
         """
+        start = fold.start
+        end = fold.end
+
         if end > self.counts.row_count:
             raise ValueError("End must be less than the number of rows.")
         if start < 0:
