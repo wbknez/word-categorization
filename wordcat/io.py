@@ -179,7 +179,7 @@ class CsvIO:
         writer.writerow(header)
         for classz in sorted(cfm.counts.keys()):
             writer.writerow([
-                cfm.mat[classz][c] for c in sorted(cfm.mat[classz].keys())
+                cfm.counts[classz][c] for c in sorted(cfm.counts[classz].keys())
             ])
 
     @staticmethod
