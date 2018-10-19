@@ -231,7 +231,7 @@ class TrainingDatabase:
         if k < 1:
             raise ValueError("K must be at least one or greater.")
 
-        ratio = np.floor(self.counts.row_count / k)
+        ratio = int(np.floor(self.counts.row_count / k))
         folds = [ratio * i for i in range(k + 1)]
         folds[-1] = self.counts.row_count
 
@@ -316,7 +316,7 @@ class TrainingDatabase:
 
         ntdb = copy(self)
         ts = TestingSet(
-            [(i - start, ntdb.counts.get_row(i)) for i in range(start, end)]
+            [Test(i - start, ntdb.counts.get_row(i)) for i in range(start, end)]
         )
         classes = ntdb.classes[slice(start, end)]
 
