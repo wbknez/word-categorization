@@ -64,6 +64,9 @@ def parse_arguments():
                            help="path to data directory in CSV or PKL format")
     validator.add_argument("folds", type=int,
                            help="number of times to fold data for validation")
+    validator.add_argument("--confusion-output", type=str,
+                           help="path to write confusion matrix CSV",
+                           default="confusion.csv")
 
     return parser.parse_args()
 

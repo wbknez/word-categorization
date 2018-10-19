@@ -2,9 +2,9 @@
 
 """
 import os
-from math import floor
 
 from wordcat.io import CsvIO, PickleIO
+from wordcat.storage import ConfusionMatrix
 
 
 def test(learner, pool, args, dbgc):
@@ -57,14 +57,51 @@ def validate(learner, pool, args, dbgc):
     :param args: The user-chosen parameters to use.
     :param dbgc: The debug console to use.
     """
+    if args.folds <= 1:
+        raise ValueError("Fold must be at least two or greater.")
+
     train_path = os.path.join(args.dir, "training.pkl")
 
     dbgc.info("Reading training data.")
     with open(train_path, "rb") as stream:
         tdb = PickleIO.read_database(stream)
+    dbgc.success("Configuration complete.")
+
+    dbgc.info("Shuffling database.")
+    tdb.shuffle()
+    dbgc.success("Shuffling complete.")
+
+    dbgc.info("Creating confusion matrix.")
+    cfm = ConfusionMatrix(learner.labels)
 
     dbgc.info("Calculating folds.")
+    folds = tdb.create_k_folds(args.folds)
 
+    dbgc.info("Beginning k-fold cross validation...")
+    for index, fold in enumerate(folds):
+        dbgc.info("Splitting at fold: {} of: {}.".format(index + 1, len(folds)))
+        ntdb, ts, ans = tdb.split(fold)
 
-    dbgc.info("Beginning k-fold cross validation.")
-    pass
+        dbgc.info("Beginning to train...")
+        learner.train(pool, ntdb, args, dbgc)
+        dbgc.success("Training complete.")
+
+        dbgc.info("Beginning to validate...")
+        vs = learner.validate(pool, ts, ans, dbgc)
+        dbgc.success("Validation complete.")
+
+        dbgc.info("Updating confusion matrix...")
+        cfm.update(vs)
+        dbgc.success("Confusion matrix updated.")
+
+    dbgc.info("Outputting confusion matrix...")
+    dbgc.info("Writing matrix to: {}.".format(args.confusion_output))
+    with open(args.confusion_output, "w+") as stream:
+        CsvIO.write_confusion(stream, [str(i) for i in range(1, 21)], cfm)
+    dbgc.success("Finished writing confusion matrix.")
+
+    dbgc.info("Computing accuracy...")
+    total = sum(c for count in cfm.counts.values() for c in count.values())
+    correct = sum([cfm.counts[i][i] for i in range(1, 21)])
+    dbgc.info("Accuracy is: {:.2f}.".format((correct / total) * 100))
+    dbgc.success("Finished computing accuracy.")
