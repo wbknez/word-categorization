@@ -161,7 +161,7 @@ class CsvIO:
         words = []
 
         for line in CsvIO.generate_lines(stream):
-            words.append(line)
+            words.append(line[0])
         return Vocabulary(words)
 
     @staticmethod
@@ -197,6 +197,22 @@ class CsvIO:
         writer.writerow(header)
         for prediction in predictions:
             writer.writerow([prediction.id, prediction.result])
+
+    @staticmethod
+    def write_rankings(stream, header, rankings):
+        """
+        Writes the specified words and their associated rankings to the
+        specified CSV stream with the specified header.
+
+        :param stream: The CSV stream to write to.
+        :param header: The ranking header(s) to use.
+        :param rankings: The word rankings to use.
+        """
+        writer = csv.writer(stream, delimiter=",", quoting=csv.QUOTE_NONNUMERIC)
+
+        writer.writerow(header)
+        for ranking in rankings:
+            writer.writerow([ranking.word, ranking.rank])
 
 
 class PickleIO:
