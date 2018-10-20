@@ -94,6 +94,16 @@ class Prediction(namedtuple("Prediction", ["id", "result"])):
     pass
 
 
+class Ranking(namedtuple("Ranking", ["word", "rank"])):
+    """
+    Represents a single word with an associated rank that denotes how
+    much a learning algorithm relies upon it for classification information
+    relative to others.
+    """
+
+    pass
+
+
 class Test(namedtuple("Test", ["id", "query"])):
     """
     Represents a single test query and associated id with which a learning
