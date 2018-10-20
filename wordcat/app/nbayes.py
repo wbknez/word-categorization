@@ -107,7 +107,7 @@ def main():
             if args.rank_words:
                 dbgc.info("Outputting word rankings...")
                 dbgc.info("Writing ranks of top {} words to {}.".format(
-                    args.rank_amount, args.rank_output
+                    args.rank_count, args.rank_output
                 ))
                 with open(args.rank_output, "w+") as stream:
                     CsvIO.write_rankings(stream, ["word", "rank"],
