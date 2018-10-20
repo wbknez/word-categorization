@@ -8,7 +8,7 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 
 from wordcat.sparse import SparseVector
-from wordcat.storage import Prediction, ValidatedPrediction
+from wordcat.storage import Prediction, ValidatedPrediction, Ranking
 
 
 class LearningAlgorithm(metaclass=ABCMeta):
@@ -94,11 +94,13 @@ class LearningAlgorithm(metaclass=ABCMeta):
 
 class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
     """
-
+    Represents an implementation of LearningAlgorithm that attempts to
+    classify documents into categories using a logistic regression
+    classification algorithm.
 
     Attributes:
-        norms (np.array):
-        w (np.array):
+        norms (np.array): The column sums used to normalize the training data.
+        w (np.array): The list of learned weights.
     """
 
     def __init__(self, labels, vocab):
@@ -189,11 +191,14 @@ class LogisticRegressionLearningAlgorithm(LearningAlgorithm):
 
 class NaiveBayesLearningAlgorithm(LearningAlgorithm):
     """
-
+    Represents an implementation of LearningAlgorithm that attempts to
+    classify documents into categories using a naive Bayes classification
+    algorithm.
 
     Attributes:
         maps (dict): The mapping of maximum apriori estimates by class.
-        priors (list): The list of prior probabilitys per class.
+        priors (dict): The mapping of prior probabilitys to class.
+        rankings (list): The list of the top n most important words.
     """
 
     def __init__(self, labels, vocab):
@@ -201,6 +206,51 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
 
         self.maps = {}
         self.priors = {}
+        self.rankings = []
+
+    def compute_tfidf(self, word, freqs, labels, maps, off_set):
+        """
+        Computes the term frequency inverse document frequency value for the
+        specified word using the specified frequencies, labels,
+        MAP estimates.
+
+        The off-set is used to prevent divide-by-zero error(s) when computing
+        the IDF term.
+
+        :param word: The word to compute the TF-IDF for.
+        :param freqs: The list of word frequencies to use.
+        :param labels: The class labels to use.
+        :param maps: The MAP estimates to use.
+        :param off_set: The off set to use to prevent division by zero errors.
+        :return: The TF-IDF value.
+        """
+        if word == 0:
+            return -1e10
+
+        values = np.array([maps[c][1].value_at(word) for c, _ in labels],
+                          dtype=np.uint16) + off_set
+        freq = freqs[word]
+
+        if freq == 0.0:
+            freq = 1.0
+
+        return np.log(freq) * np.sum(np.log(values))
+
+    def compute_word_frequency(self, column, total):
+        """
+        Returns the frequency of the specified word, given as a single column
+        in a training set.
+
+        The formula for the frequency is:
+            f(w) =    # of occurences of word w
+                   --------------------------------
+                   # of total words in training set
+
+        :param column: The word to compute the frequency for.
+        :param total: The total number of words in a training set.
+        :return: The word frequency.
+        """
+        return column.sum() / total
 
     def count_words(self, mat):
         """
@@ -275,6 +325,20 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
         ))
         return Prediction(test.id, self.find_max(scores))
 
+    def rank_words(self, tfidfs, count):
+        """
+        Sorts and compiles a list of the specified count length of the most
+        important words using the specified TF-IDF values.
+
+        :param tfidfs: The collection of TF-IDF values to use.
+        :param count: The number of words to return.
+        :return: A list of word rankings.
+        """
+        array = np.array(tfidfs, dtype=np.float32)
+        indices = np.argsort(array)[::-1][:count]
+
+        return [Ranking(self.vocab[i], array[i]) for i in indices]
+
     def train(self, pool, tdb, params, dbgc):
         dbgc.info("Calculating priors P(Yk) for all classes.")
         self.priors = {
@@ -301,3 +365,23 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
             cls: [y_k[idx], x_k[idx]] \
                 for idx, cls in enumerate(sorted(self.priors.keys()))
         }
+
+
+        if params.rank_words:
+            dbgc.info("Computing P(Xi) for all words in dataset.")
+            freqs = pool.map(
+                partial(self.compute_word_frequency, total=tdb.counts.sum()),
+                tdb.counts.get_columns()
+            )
+
+            dbgc.info("Calculating TF-IDF.")
+            tfidfs = pool.map(
+                partial(
+                    self.compute_tfidf, freqs=freqs, labels=self.labels,
+                    maps=self.maps, off_set=1
+                ),
+                [i for i in range(tdb.counts.col_count)]
+            )
+
+            dbgc.info("Calculating word rankings.")
+            self.rankings = self.rank_words(tfidfs, params.rank_count)
