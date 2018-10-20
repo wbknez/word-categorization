@@ -227,14 +227,14 @@ class NaiveBayesLearningAlgorithm(LearningAlgorithm):
         if word == 0:
             return -1e10
 
-        values = np.array([maps[c][1].value_at(word) for c, _ in labels],
-                          dtype=np.uint16) + off_set
+        values = np.exp(np.array([maps[c][1].value_at(word) for c, _ in labels],
+                                 dtype=np.float32)) + off_set
         freq = freqs[word]
 
         if freq == 0.0:
             freq = 1.0
 
-        return np.log(freq) * np.sum(np.log(values))
+        return -np.log2(freq) * np.sum(np.log2(values))
 
     def compute_word_frequency(self, column, total):
         """
