@@ -599,6 +599,17 @@ class SparseVector:
         vec[self.indices] = self.data
         return vec
 
+    def value_at(self, index):
+        """
+        Returns the value located at the specified index of this sparse
+        vector; if no such value exists, then zero is returned instead.
+
+        :param index: The index to use.
+        :return: The value at an index, otherwise zero.
+        """
+        index = np.where(self.indices == index)[0]
+        return self.data[index] if index.size != 0 else 0
+
     def venn(self, other):
         """
         Computes both the set intersection and difference between this sparse

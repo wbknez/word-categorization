@@ -337,6 +337,23 @@ class SparseVectorTest(TestCase):
 
         self.assertTrue(np.array_equal(result, expected))
 
+    def test_value_at_when_value_is_not_zero(self):
+        array = np.random.randint(1, 10, 20)
+        vec = SparseVector.from_list(array)
+
+        expected = array.tolist()
+        result = [vec.value_at(i) for i in range(vec.size)]
+
+        self.assertEqual(result, expected)
+
+    def test_value_at_when_value_is_zero(self):
+        vec = SparseVector.zero(7)
+
+        expected = [0] * 7
+        result = [vec.value_at(i) for i in range(vec.size)]
+
+        self.assertEqual(result, expected)
+
     def test_venn_with_random(self):
         array_a = np.random.randint(0, 100, 30)
         array_b = np.random.randint(0, 100, 30)
