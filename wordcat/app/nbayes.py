@@ -14,7 +14,7 @@ from multiprocessing import Pool
 
 from wordcat.algorithm import NaiveBayesLearningAlgorithm
 from wordcat.app import test, validate
-from wordcat.io import PickleIO
+from wordcat.io import CsvIO, PickleIO
 from wordcat.utils import DebugConsole
 
 
@@ -51,6 +51,16 @@ def parse_arguments():
                         help="path to data directory in CSV or PKL format")
     tester.add_argument("output", type=str,
                         help="path for output file")
+    tester.add_argument("-r", "--rank-words",
+                        help="rank words according to relative importance",
+                        action="store_true",
+                        default=False)
+    tester.add_argument("--rank-count", type=int,
+                        help="how many words to rank",
+                        default=100)
+    tester.add_argument("--rank-output", type=str,
+                        help="CSV file to write ranking results",
+                        default="rankings.csv")
 
     validator = subparsers.add_parser("validate")
 
@@ -93,6 +103,16 @@ def main():
 
         if args.subparsers == "test":
             test(learner, pool, args, dbgc)
+
+            if args.rank_words:
+                dbgc.info("Outputting word rankings...")
+                dbgc.info("Writing ranks of top {} words to {}.".format(
+                    args.rank_amount, args.rank_output
+                ))
+                with open(args.rank_output, "w+") as stream:
+                    CsvIO.write_rankings(stream, ["word", "rank"],
+                                         learner.rankings)
+                dbgc.success("Finished writing word rankings.")
         else:
             validate(learner, pool, args, dbgc)
 
