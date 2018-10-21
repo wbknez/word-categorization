@@ -50,11 +50,11 @@ Each program has two subcommands: `test` and `validate`.
 
 To train and test a classifier for use with Kaggle, execute the following:
 
-```./nbayes [OPTIONS] test [INPUT] [OUTPUT]```
+```./nbayes.sh [OPTIONS] test [INPUT] [OUTPUT]```
 
 or:
 
-```./logres [OPTIONS] test [INPUT] [OUTPUT]```
+```./logres.sh [OPTIONS] test [INPUT] [OUTPUT]```
 
 where:
 
@@ -65,11 +65,11 @@ where:
 To train a learner and have it validate itself on a single training database,
  execute the following:
  
- ```./nbayes [OPTIONS] validate [INPUT] [FOLDS]```
+ ```./nbayes.sh [OPTIONS] validate [INPUT] [FOLDS]```
  
  or:
 
- ```./logres [OPTIONS] validate [INPUT] [FOLDS]```
+ ```./logres.sh [OPTIONS] validate [INPUT] [FOLDS]```
 
 where:
 
@@ -94,7 +94,7 @@ The following command line options are only available to `sparsify`:
 The following command line options are available to both `nbayes` and `logres`:
  * `--confusion-output` - The path to a CSV file to which the confusion matrix
    for a single run will be written.  This is `confusion.csv` by default.
- * `--write-confusion` - Whether or not to write the confusion matrix to CSV.
+ * `--make-confusion` - Whether or not to write the confusion matrix to CSV.
    This is disabled by default.
 
 The following command line options are only available to `nbayes`:
