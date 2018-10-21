@@ -94,7 +94,7 @@ def validate(learner, pool, args, dbgc):
         cfm.update(vs)
         dbgc.success("Confusion matrix updated.")
 
-    if args.write_confusion:
+    if args.make_confusion:
         dbgc.info("Outputting confusion matrix...")
         dbgc.info("Writing matrix to: {}.".format(args.confusion_output))
         with open(args.confusion_output, "w+") as stream:
