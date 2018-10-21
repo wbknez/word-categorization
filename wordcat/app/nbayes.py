@@ -114,6 +114,7 @@ def main():
                                          learner.rankings)
                 dbgc.success("Finished writing word rankings.")
         else:
+            args.rank_words = False
             validate(learner, pool, args, dbgc)
 
 
