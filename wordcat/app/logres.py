@@ -43,7 +43,7 @@ def parse_arguments():
                         type=int, default=4)
     parser.add_argument("-s", "--steps",
                         help="maximum number of weight refinements",
-                        type=int, default=1000)
+                        type=int, default=250)
     parser.add_argument("-v", "--verbose",
                         help="enable verbose console output",
                         action="store_true",
@@ -67,6 +67,10 @@ def parse_arguments():
     validator.add_argument("--confusion-output", type=str,
                            help="path to write confusion matrix CSV",
                            default="confusion.csv")
+    validator.add_argument("--make-confusion",
+                           help="whether or not to write a confusion matrix",
+                           action="store_true",
+                           default=False)
 
     return parser.parse_args()
 

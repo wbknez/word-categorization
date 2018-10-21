@@ -94,11 +94,12 @@ def validate(learner, pool, args, dbgc):
         cfm.update(vs)
         dbgc.success("Confusion matrix updated.")
 
-    dbgc.info("Outputting confusion matrix...")
-    dbgc.info("Writing matrix to: {}.".format(args.confusion_output))
-    with open(args.confusion_output, "w+") as stream:
-        CsvIO.write_confusion(stream, [str(i) for i in range(1, 21)], cfm)
-    dbgc.success("Finished writing confusion matrix.")
+    if args.write_confusion:
+        dbgc.info("Outputting confusion matrix...")
+        dbgc.info("Writing matrix to: {}.".format(args.confusion_output))
+        with open(args.confusion_output, "w+") as stream:
+            CsvIO.write_confusion(stream, [str(i) for i in range(1, 21)], cfm)
+        dbgc.success("Finished writing confusion matrix.")
 
     dbgc.info("Computing accuracy...")
     total = sum(c for count in cfm.counts.values() for c in count.values())

@@ -71,6 +71,10 @@ def parse_arguments():
     validator.add_argument("--confusion-output", type=str,
                            help="path to write confusion matrix CSV",
                            default="confusion.csv")
+    validator.add_argument("--make-confusion",
+                           help="whether or not to write a confusion matrix",
+                           action="store_true",
+                           default=False)
 
     return parser.parse_args()
 
