@@ -1,4 +1,4 @@
-Project 2: Naive Bayes and Logistic Regression
+Naive Bayes and Logistic Regression
 =========================
 
 Overview
