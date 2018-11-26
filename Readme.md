@@ -25,6 +25,7 @@ The following are notable features implemented in this project:
 Sample Output
 -------------
 ![Naive Bayes Confusion Matrix](images/bayes_ccfm.png)
+
 Confusion matrix for a sample naive Bayes run.
 
 Dependencies
