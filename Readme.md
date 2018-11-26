@@ -17,6 +17,8 @@ The following are notable features implemented in this project:
  * Multinomial logistic regression classifier.
  * A simple data pipeline using Python's `pickle` library.
  * Sparse vector and matrix library using a set-based numeric space.
+ * Term frequency inverse document frequency (TF-IDF) for finding and penalizing
+   stop words.
  * K-fold cross validation and accuracy reporting.
 
 Dependencies
