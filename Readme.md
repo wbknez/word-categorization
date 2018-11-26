@@ -19,7 +19,14 @@ The following are notable features implemented in this project:
  * Sparse vector and matrix library using a set-based numeric space.
  * Term frequency inverse document frequency (TF-IDF) for finding and penalizing
    stop words.
+ * Confusion matrix creation and output to CSV.
  * K-fold cross validation and accuracy reporting.
+
+Sample Output
+-------------
+![Naive Bayes Confusion Matrix](images/bayes_ccfm.png)
+
+Confusion matrix for a sample naive Bayes run.
 
 Dependencies
 ------------
