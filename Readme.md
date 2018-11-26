@@ -24,9 +24,11 @@ The following are notable features implemented in this project:
 
 Sample Output
 -------------
-![Naive Bayes Confusion Matrix](images/bayes_ccfm.png)
+The following is the confusion matrix generated from a naive Bayes classifier
+using $\beta = 0.03$ and whose overall accuracy was $86.07%$ after cross
+validation.
 
-Confusion matrix for a sample naive Bayes run.
+![Naive Bayes Confusion Matrix](images/bayes_ccfm.png)
 
 Dependencies
 ------------
