@@ -1,7 +1,7 @@
 """
 A utility to optimize data files for the Word Categorization project.
 
-This file is part of an assignment for CS 529, Fall 2018 with Dr. Estrada.
+This file is part of an assignment for UNM CS 529, Fall 2018.
 """
 import os
 import shutil

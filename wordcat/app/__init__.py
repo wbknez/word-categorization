@@ -1,5 +1,5 @@
 """
-
+Contains functions shared between multiple application entry points.
 """
 import os
 

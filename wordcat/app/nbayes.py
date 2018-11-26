@@ -5,7 +5,7 @@ learning algorithm.
 This project aims to use both naive Bayes and logistic regression algorithms to
 explore document/text classification as a problem for applied machine learning.
 
-This project is an assignment for CS 529, Fall 2018 with Dr. Estrada.
+This project is an assignment for UNM CS 529, Fall 2018.
 """
 import os
 import sys
