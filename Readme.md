@@ -7,16 +7,17 @@ This project aims to implement two learning algorithms - naive Bayes and
 logistic regression - in order to explore their effectiveness and performance on
 a simple text classification problem.
 
+This project was completed for UNM CS 529, Fall 2018.
+
 Features
 --------
-The following are notable features of this project:
+The following are notable features implemented in this project:
 
- * Implementation of a parallelized multinomial naive Bayes classifier.
- * Implementation of a multinomial logistic regression classifier.
- * Implementation of a simple data pipeline using Python's `pickle` library.
- * Implementation of a sparse vector and matrix library using a set-based
-   numeric space.
- * Implementation of k-fold cross validation and accuracy reporting.
+ * Parallelized multinomial naive Bayes classifier.
+ * Multinomial logistic regression classifier.
+ * A simple data pipeline using Python's `pickle` library.
+ * Sparse vector and matrix library using a set-based numeric space.
+ * K-fold cross validation and accuracy reporting.
 
 Dependencies
 ------------
